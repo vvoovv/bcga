@@ -1,6 +1,6 @@
 import math
 import bpy
-import cga
+import cga, bcga
 from cga.op_comp import front, side, top
 from cga import context
 
@@ -10,7 +10,8 @@ class Comp(cga.op_comp.Comp):
 	normalThreshold = normalThreshold
 	normalThreshold2 = math.sqrt(1-normalThreshold*normalThreshold)
 	
-	def execute(self, operatorDef):
+	def execute(self):
+		operatorDef = self.operatorDef
 		state = context.getExecutionState()
 		if not state['valid']:
 			print("comp",  self.compSelector, "invalid state")
@@ -67,8 +68,10 @@ class Comp(cga.op_comp.Comp):
 				# it's the one of the two selected objects
 				selected = bContext.selected_objects
 				separatedObject = selected[0] if selected[1]==obj else selected[1]
+				name = str(target)
+				separatedObject.name = name
+				separatedObject.data.name = name
 				# remove selection
-				separatedObject.name = str(target)
 				separatedObject.select = False
 				components.append((separatedObject, target))
 		
@@ -77,9 +80,7 @@ class Comp(cga.op_comp.Comp):
 			for part in components:
 				part[0].select = True
 			# perform parenting
-			bpy.ops.object.parent_set()
-			# deselect everything
-			bpy.ops.object.select_all(action="DESELECT")
+			bcga.parent_set()
 			
 			# now apply the rule for each decomposed Blender object
 			for part in components:

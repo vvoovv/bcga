@@ -9,7 +9,7 @@ from .op_extrude import extrude
 from .op_color import color
 
 from .base import context
-from .base import Rule
+from .base import Rule, OperatorDef
 
 x = "x"
 y = "y"
@@ -27,6 +27,8 @@ def rule(operator):
 	return inner
 
 def repeat(splitDef):
+	if not isinstance(splitDef, OperatorDef):
+		splitDef = OperatorDef(splitDef)
 	splitDef.repeat = True
 	return splitDef
 

@@ -39,16 +39,17 @@ class ComplexOperator(Operator):
 			context.immediateExecution = False
 
 	def into(self, operatorDef):
+		self.operatorDef = operatorDef
 		if self.immediateExecution:
 			# remove immediate execution lock
 			context.immediateExecution = True
-			self.execute(operatorDef)
+			self.execute()
 		return self
 
 
 class OperatorDef:
-	def __init__(self, operator1, operator2):
-		self.parts = [operator1, operator2]
+	def __init__(self, *operators):
+		self.parts = list(operators)
 		self.repeat = False
 	
 	def __or__(self, other):
@@ -68,6 +69,7 @@ class OperatorDef:
 			result += str(part)
 		result += "]"
 		return result
+
 
 class Context:
 	def __init__(self):

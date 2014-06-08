@@ -1,4 +1,5 @@
 import imp, os
+import bpy
 
 from cga import context
 
@@ -6,6 +7,12 @@ from .op_comp import Comp
 from .op_split import Split
 from .op_extrude import Extrude
 from .op_color import Color
+
+def parent_set():
+	# perform parenting of the active object and selected objects
+	bpy.ops.object.parent_set()
+	# deselect everything
+	bpy.ops.object.select_all(action="DESELECT")
 
 def buildFactory():
 	factory = context.factory
