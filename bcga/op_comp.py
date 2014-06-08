@@ -14,7 +14,7 @@ class Comp(cga.op_comp.Comp):
 		operatorDef = self.operatorDef
 		state = context.getExecutionState()
 		if not state['valid']:
-			print("comp",  self.compSelector, "invalid state")
+			print("comp", self.compSelector, "invalid state")
 		print("executing comp", self.compSelector)
 		
 		# create a dict from the operatorDef list

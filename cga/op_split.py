@@ -9,16 +9,6 @@ class Split(ComplexOperator):
 	def __init__(self, direction):
 		self.direction = direction
 		super().__init__()
-	
-	def execute(self):
-		operatorDef = self.operatorDef
-		state = context.getExecutionState()
-		if not state['valid']:
-			print("split",  self.direction, "invalid state")
-		print("executing split", self.direction)
-		print(operatorDef)
-		# invalidate state
-		state['valid'] = False
 
 def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 	splitDef.childRepeat = None
@@ -42,7 +32,7 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 					floatingSize += _value
 					if not splitDef.hasFloating:
 						splitDef.hasFloating = True
-					if not parentSplitDef.hasFloating:
+					if parentSplitDef and not parentSplitDef.hasFloating:
 						# notify parent splitDef that it has floating
 						parentSplitDef.hasFloating = True
 				elif "rel" in value:
@@ -61,16 +51,16 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 		numRepetitions = 0
 		# multiplier for floating
 		multiplier = 0
-		# the parent splitDef has repeat
 		if splitDef.repeat:
+			# the parent splitDef has repeat
 			if splitDef.hasFloating:
 				# number of repetions
 				numRepetitions = 1/(floatingSize+fixedSize)
 				numRepetitions = round(numRepetitions)
 				# calculating multiplier for floating
 				multiplier = (1-numRepetitions*fixedSize)/(numRepetitions*floatingSize)
-		# the child splitDef has repeat
 		elif splitDef.childRepeat:
+			# the child splitDef has repeat
 			if splitDef.hasFloating:
 				childRepeat = splitDef.childRepeat
 				# number of repetions
@@ -78,6 +68,9 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 				numRepetitions = round(numRepetitions)
 				# calculating multiplier for floating
 				multiplier = (1-fixedSize-numRepetitions*childRepeat.fixedSize)/(floatingSize+numRepetitions*childRepeat.floatingSize)
+		elif floatingSize>0:
+			# no repeats but there are floating
+			multiplier = (1-fixedSize)/floatingSize
 		
 		if multiplier<0:
 			# no space for floating
@@ -100,7 +93,7 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 				else:
 					lastCutValue = assignCut(cuts, part, multiplier, lastCutValue)
 		# finished!
-		print(cuts)
+		#print(cuts)
 		return cuts
 
 def assignCut(cuts, part, multiplier, lastCutValue):
@@ -109,5 +102,5 @@ def assignCut(cuts, part, multiplier, lastCutValue):
 		cutSize = cutSize*multiplier if multiplier>0 else 0
 	if cutSize>0:
 		lastCutValue += cutSize
-		cuts.append((lastCutValue, part))
+		cuts.append([lastCutValue, part])
 	return lastCutValue
