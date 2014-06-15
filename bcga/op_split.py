@@ -63,11 +63,16 @@ class Split(cga.op_split.Split):
 		bcga.parent_set()
 		
 		# now apply the rule for each cut
-		for cut in cuts:
+		context
+		for splitIndex,cut in enumerate(cuts):
 			context.pushExecutionState()
 			bContext.scene.objects.active = cut[0]
+			# inject splitIndex to the context
+			context.splitIndex = splitIndex
 			cut[1].execute()
 			context.popExecutionState()
+		if hasattr(context, "splitIndex"):
+			delattr(context, "splitIndex")
 		# invalidate state
 		state['valid'] = False
 	
