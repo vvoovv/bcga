@@ -10,15 +10,28 @@ class Split(ComplexOperator):
 		self.direction = direction
 		super().__init__()
 
+
+class SplitDef:
+	def __init__(self, parts, repeat):
+		self.parts = []
+		for i, part in enumerate(parts):
+			# if isinstance(part, tuple), then part is a repeat clause
+			part = SplitDef(part, True) if isinstance(part, tuple) else part
+			self.parts.append(part)
+		self.repeat = repeat
+		self.childRepeat = None
+		self.hasFloating = False
+
+
 def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
-	splitDef.childRepeat = None
-	splitDef.hasFloating = False
+	if not parentSplitDef:
+		splitDef = SplitDef(splitDef, False)
 	fixedSize = 0
 	floatingSize = 0
 	for part in splitDef.parts:
-		if isinstance(part, OperatorDef):
+		if isinstance(part, SplitDef):
 			# only one repeat is allowed!
-			if part.repeat and not splitDef.repeat and not splitDef.childRepeat:
+			if not splitDef.repeat and not splitDef.childRepeat:
 				# notify parent splitDef that it has repeat
 				splitDef.childRepeat = part
 			calculateSplit(part, scopeSise, splitDef)
@@ -51,15 +64,7 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 		numRepetitions = 0
 		# multiplier for floating
 		multiplier = 0
-		if splitDef.repeat:
-			# the parent splitDef has repeat
-			if splitDef.hasFloating:
-				# number of repetions
-				numRepetitions = 1/(floatingSize+fixedSize)
-				numRepetitions = round(numRepetitions)
-				# calculating multiplier for floating
-				multiplier = (1-numRepetitions*fixedSize)/(numRepetitions*floatingSize)
-		elif splitDef.childRepeat:
+		if splitDef.childRepeat:
 			# the child splitDef has repeat
 			if splitDef.hasFloating:
 				childRepeat = splitDef.childRepeat
@@ -75,25 +80,26 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 		if multiplier<0:
 			# no space for floating
 			multiplier = 0
-		print(numRepetitions, multiplier)
+		
 		# calculating cuts
 		cuts = []
 		lastCutValue = 0
-		# the parent splitDef has repeat
-		if splitDef.repeat:
-			for cutIndex in range(numRepetitions):
-				for part in splitDef.parts:
-					lastCutValue = assignCut(cuts, part, multiplier, lastCutValue)
-		else:
-			for part in splitDef.parts:
-				if part == splitDef.childRepeat:
-					for cutIndex in range(numRepetitions):
-						for _part in part.parts:
-							lastCutValue = assignCut(cuts, _part, multiplier, lastCutValue)
-				else:
-					lastCutValue = assignCut(cuts, part, multiplier, lastCutValue)
+		for part in splitDef.parts:
+			if part == splitDef.childRepeat:
+				for cutIndex in range(numRepetitions):
+					for _part in part.parts:
+						lastCutValue = assignCut(cuts, _part, multiplier, lastCutValue)
+			else:
+				lastCutValue = assignCut(cuts, part, multiplier, lastCutValue)
 		# finished!
-		#print(cuts)
+		# printing cut sizes
+		_cuts = [cut[0] for cut in cuts]
+		_lastCut = 0
+		for i,_cut in enumerate(_cuts):
+			cutSize = scopeSise*(_cuts[i]-_lastCut)
+			_lastCut = _cuts[i]
+			_cuts[i] = cutSize
+		print(_cuts)
 		return cuts
 
 def assignCut(cuts, part, multiplier, lastCutValue):

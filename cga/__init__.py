@@ -9,7 +9,7 @@ from .op_extrude import extrude
 from .op_color import color
 
 from .base import context
-from .base import Rule, OperatorDef
+from .base import Rule
 
 x = "x"
 y = "y"
@@ -26,11 +26,8 @@ def rule(operator):
 			return Rule(operator, args, kwargs)
 	return inner
 
-def repeat(splitDef):
-	if not isinstance(splitDef, OperatorDef):
-		splitDef = OperatorDef(splitDef)
-	splitDef.repeat = True
-	return splitDef
+def repeat(*args):
+	return args
 
 def flt(value):
 	return {'flt':value}
@@ -39,10 +36,10 @@ def rel(value):
 	return {'rel':value}
 
 def size(sizeX, sizeY, sizeZ):
-	print("size:", sizeX, sizeY, sizeZ)
+	pass
 
 def translate(tx, ty, tz):
-	print("translate:", tx, ty, tz)
+	pass
 
 def insert(assetId):
-	print("insert:", assetId)
+	pass

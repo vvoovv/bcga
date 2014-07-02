@@ -11,7 +11,6 @@ class Comp(cga.op_comp.Comp):
 	normalThreshold2 = math.sqrt(1-normalThreshold*normalThreshold)
 	
 	def execute(self):
-		operatorDef = self.operatorDef
 		state = context.getExecutionState()
 		if not state['valid']:
 			print("comp", self.compSelector, "invalid state")
@@ -19,7 +18,7 @@ class Comp(cga.op_comp.Comp):
 		
 		# create a dict from the operatorDef list
 		parts = {}
-		for part in operatorDef.parts:
+		for part in self.parts:
 			selector = part.value
 			parts[part.value] = part
 		

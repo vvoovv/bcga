@@ -7,7 +7,6 @@ materialCache = {}
 
 class Color(cga.op_color.Color):
 	def execute(self):
-		print("color", self.color)
 		color = self.color
 		if color in materialCache:
 			material = materialCache[color]

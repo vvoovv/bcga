@@ -8,9 +8,6 @@ class Operator:
 		self.value = value
 		return self
 	
-	def __or__(self, other):
-		return OperatorDef(self, other)
-	
 	def execute(self, *args):
 		pass
 	
@@ -38,8 +35,8 @@ class ComplexOperator(Operator):
 			# set immediate execution lock
 			context.immediateExecution = False
 
-	def into(self, operatorDef):
-		self.operatorDef = operatorDef
+	def into(self, *args):
+		self.parts = args
 		if self.immediateExecution:
 			# remove immediate execution lock
 			context.immediateExecution = True
@@ -51,10 +48,6 @@ class OperatorDef:
 	def __init__(self, *operators):
 		self.parts = list(operators)
 		self.repeat = False
-	
-	def __or__(self, other):
-		self.parts.append(other)
-		return self
 	
 	def __repr__(self):
 		result = ""

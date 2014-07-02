@@ -5,7 +5,6 @@ from cga.op_split import calculateSplit
 
 class Split(cga.op_split.Split):
 	def execute(self):
-		operatorDef = self.operatorDef
 		state = context.getExecutionState()
 		if not state['valid']:
 			print("split", self.direction, "invalid state")
@@ -30,7 +29,7 @@ class Split(cga.op_split.Split):
 		# calculate scope size (i.e. edge length) along the direction of split
 		edge = verticalEdges[0] if self.direction == cga.y else horizontalEdges[0]
 		scopeSize = (edge[1]-edge[0]).length
-		cuts = calculateSplit(operatorDef, scopeSize)
+		cuts = calculateSplit(self.parts, scopeSize)
 		if self.direction == cga.y:
 			# vertical split
 			e1 = verticalEdges[0]
