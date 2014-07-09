@@ -99,7 +99,7 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 			cutSize = scopeSise*(_cuts[i]-_lastCut)
 			_lastCut = _cuts[i]
 			_cuts[i] = cutSize
-		print(_cuts)
+		#print(_cuts)
 		return cuts
 
 def assignCut(cuts, part, multiplier, lastCutValue):

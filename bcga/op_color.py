@@ -7,12 +7,16 @@ materialCache = {}
 
 class Color(cga.op_color.Color):
 	def execute(self):
-		color = self.color
-		if color in materialCache:
-			material = materialCache[color]
+		colorHex = self.colorHex
+		if colorHex in materialCache:
+			materialIndex = materialCache[colorHex]
 		else:
-			material = bpy.data.materials.new(str(color))
-			material.diffuse_color = color
+			materialIndex = len(bpy.context.active_object.data.materials)
+			material = bpy.data.materials.new(colorHex)
+			material.diffuse_color = self.color
 			# remember the color for the future use
-			materialCache[color] = material
-		bpy.context.active_object.data.materials.append(material)
+			materialCache[colorHex] = materialIndex
+			bpy.context.active_object.data.materials.append(material)
+		# assign material to the bmesh face
+		shape = context.getExecutionState()['shape']
+		shape.material_index = materialIndex

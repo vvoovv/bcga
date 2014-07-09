@@ -14,7 +14,8 @@ class Comp(cga.op_comp.Comp):
 		state = context.getExecutionState()
 		if not state['valid']:
 			print("comp", self.compSelector, "invalid state")
-		print("executing comp", self.compSelector)
+		
+		bm = context.bm
 		
 		# create a dict from the operatorDef list
 		parts = {}
@@ -22,23 +23,23 @@ class Comp(cga.op_comp.Comp):
 			selector = part.value
 			parts[part.value] = part
 		
-		bContext = bpy.context
+		# a hack to skip the bottom face FIXME
+		skipHorizontalFace = True
 		
-		# active object
-		obj = bContext.active_object
-		
-		# a hack to skip the bottom polygon FIXME
-		skipHorizontalPolygon = True
-		
-		# list of newly created Blender objects and its rule or operator
+		# list of face indices and their rule or operator
 		components = []
+		# create a dictionary of faces with face indices as the dictionary keys
+		faces = {}
+		for face in bm.faces:
+			faces[face.index] = face
 		# iterate till we have something to decompose
 		target = True
 		while target:
 			target = None
-			for polygon in obj.data.polygons:
-				# is the polygon a target one for the selector
-				normal = polygon.normal
+			for face in faces:
+				face = faces[face]
+				# is the face a target one for the selector?
+				normal = face.normal
 				# vertical component of the normal
 				nv = math.fabs(normal[2])
 				if nv<=self.normalThreshold2:
@@ -51,40 +52,20 @@ class Comp(cga.op_comp.Comp):
 				elif nv>self.normalThreshold:
 					# horizontal polygon
 					if top in parts:
-						if skipHorizontalPolygon:
-							skipHorizontalPolygon = False
+						if skipHorizontalFace:
+							skipHorizontalFace = False
 						else:
 							target = parts[top]
 							del parts[top] # a hack FIXME
 				if target:
+					del faces[face.index]
+					components.append((face, target))
 					break
-			if target:
-				polygon.select = True
-				bpy.ops.object.mode_set(mode="EDIT")
-				bpy.ops.mesh.separate()
-				bpy.ops.object.mode_set(mode="OBJECT")
-				# finding the object that has been just separated from the active object
-				# it's the one of the two selected objects
-				selected = bContext.selected_objects
-				separatedObject = selected[0] if selected[1]==obj else selected[1]
-				name = str(target)
-				separatedObject.name = name
-				separatedObject.data.name = name
-				# remove selection
-				separatedObject.select = False
-				components.append((separatedObject, target))
 		
 		if len(components)>0:
-			# select all newly created component objects
-			for part in components:
-				part[0].select = True
-			# perform parenting
-			bcga.parent_set()
-			
 			# now apply the rule for each decomposed Blender object
 			for part in components:
-				context.pushExecutionState()
-				bContext.scene.objects.active = part[0]
+				context.pushExecutionState(shape=part[0])
 				part[1].execute()
 				context.popExecutionState()
 			# invalidate state

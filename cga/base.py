@@ -84,8 +84,13 @@ class Context:
 			self.stack.append(state)
 		return self.stack[-1]
 	
-	def pushExecutionState(self):
-		self.stack.append({'valid': True})
+	def pushExecutionState(self, **kwargs):
+		# create a new execution state entry
+		state = kwargs
+		state['valid'] = True
+		self.stack.append(state)
+		return state
+		
 	
 	def popExecutionState(self):
 		self.stack.pop()

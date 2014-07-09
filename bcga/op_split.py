@@ -8,27 +8,30 @@ class Split(cga.op_split.Split):
 		state = context.getExecutionState()
 		if not state['valid']:
 			print("split", self.direction, "invalid state")
-		# splitting a rectange
-		bContext = bpy.context
-		# active object
-		obj = bContext.active_object
-		mesh = obj.data
-		vertices = mesh.vertices
+		
+		bm = context.bm
+		self.bm = bm
+		# getting current face
+		face = state['shape']
+		
+		# splitting the rectange
 		# finding horizontal and vertical edges
 		horizontalEdges = []
 		verticalEdges = []
-		for edge in mesh.edges:
-			v1 = vertices[edge.vertices[0]].co
-			v2 = vertices[edge.vertices[1]].co
+		for edge in face.edges:
+			vert1 = edge.verts[0]
+			vert2 = edge.verts[1]
+			v1 = vert1.co
+			v2 = vert2.co
 			if v1[2]==v2[2]: # z coordinates are the same
-				origin,end = (v1,v2)
+				origin,end = (vert1, vert2)
 				horizontalEdges.append((origin,end))
 			else:
-				origin,end = (v1,v2) if v2[2]>v1[2] else (v2,v1)
+				origin,end = (vert1,vert2) if v2[2]>v1[2] else (vert2,vert1)
 				verticalEdges.append((origin,end))
 		# calculate scope size (i.e. edge length) along the direction of split
 		edge = verticalEdges[0] if self.direction == cga.y else horizontalEdges[0]
-		scopeSize = (edge[1]-edge[0]).length
+		scopeSize = (edge[1].co-edge[0].co).length
 		cuts = calculateSplit(self.parts, scopeSize)
 		if self.direction == cga.y:
 			# vertical split
@@ -39,33 +42,32 @@ class Split(cga.op_split.Split):
 			e1 = horizontalEdges[0]
 			e2 = horizontalEdges[1]
 			# check if e1 and e2 are pointing in the same direction
-			if (e1[1]-e1[0]).dot(e2[1]-e2[0])<0:
+			if (e1[1].co-e1[0].co).dot(e2[1].co-e2[0].co)<0:
 				# change origin and end
 				e2 = (e2[1], e2[0])
 		# initial points for a newly cut rectangle
 		prevPoint1 = e1[0]
 		prevPoint2 = e2[0]
-		for cut in cuts:
+		# the last cut section cuts[-1] is treated separately
+		for cutIndex in range(len(cuts)-1):
+			cut = cuts[cutIndex]
 			cutValue = cut[0]
-			v1 = e1[0] + cutValue*(e1[1]-e1[0])
-			v2 = e2[0] + cutValue*(e2[1]-e2[0])
+			v1 = e1[0].co + cutValue*(e1[1].co-e1[0].co)
+			v2 = e2[0].co + cutValue*(e2[1].co-e2[0].co)
+			v1 = bm.verts.new(v1)
+			v2 = bm.verts.new(v2)
 			# keep the newly cut object in cut[0] 
-			cut[0] = self.createPolygon(obj, (prevPoint2, v2, v1, prevPoint1), str(cut[1]))
+			cut[0] = self.createFace((prevPoint2, v2, v1, prevPoint1))
 			prevPoint1 = v1
 			prevPoint2 = v2
-			
-		# remove all vertices of the active object, but keep the active object with empty mesh for parenting
-		bpy.ops.object.mode_set(mode="EDIT")
-		bpy.ops.mesh.select_all(action="SELECT")
-		bpy.ops.mesh.delete()
-		bpy.ops.object.mode_set(mode="OBJECT")
-		bcga.parent_set()
+		# create a face for the last cut section (cutValue=1)
+		cuts[-1][0] = self.createFace((prevPoint2, e2[1], e1[1], prevPoint1))
+		
+		context.facesForRemoval.append(face)
 		
 		# now apply the rule for each cut
-		context
 		for splitIndex,cut in enumerate(cuts):
-			context.pushExecutionState()
-			bContext.scene.objects.active = cut[0]
+			context.pushExecutionState(shape=cut[0])
 			# inject splitIndex to the context
 			context.splitIndex = splitIndex
 			cut[1].execute()
@@ -75,12 +77,5 @@ class Split(cga.op_split.Split):
 		# invalidate state
 		state['valid'] = False
 	
-	def createPolygon(self, parentObj, vertices, name):
-		mesh = bpy.data.meshes.new(name)
-		mesh.from_pydata(vertices, [], ((0,1,2,3),))
-		obj = bpy.data.objects.new(name, mesh)
-		obj.location = parentObj.location
-		bpy.context.scene.objects.link(obj)
-		obj.select = True
-		mesh.update()
-		return obj
+	def createFace(self, verts):
+		return self.bm.faces.new(verts)
