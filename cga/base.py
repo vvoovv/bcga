@@ -1,3 +1,4 @@
+import random as randomlib
 
 class Operator:
 	def __init__(self):
@@ -5,7 +6,7 @@ class Operator:
 			self.execute()
 	
 	def __rrshift__(self, value):
-		self.value = value
+		self.value = value.value if isinstance(value, Attr) else value
 		return self
 	
 	def execute(self, *args):
@@ -90,9 +91,79 @@ class Context:
 		state['valid'] = True
 		self.stack.append(state)
 		return state
-		
 	
 	def popExecutionState(self):
 		self.stack.pop()
+	
+	def registerRandomAttr(self, attr):
+		self.attrs.append(attr)
+		
+	def init(self):
+		# the list of random attrs
+		self.attrs = []
+	
+	def prepare(self):
+		"""The method does all necessary preparations for a rule evaluation."""
+		# set random values for the attrs from self.attr
+		for attr in self.attrs:
+			attr.setValue()
+
+#
+# Attributes stuff
+#
+
+def attr(value):
+	#return context.factory["Attr"](value)
+	return Attr(value)
+
+def random(low, high):
+	return Random(low, high)
+
+class Attr:
+	def __init__(self, value):
+		if (isinstance(value, Random)):
+			self.random = value
+			context.registerRandomAttr(self)
+		else:
+			self.value = value
+	
+	def setValue(self):
+		"""Sets a value for the attribute. Relevant only for random attributes"""
+		if hasattr(self, "random"):
+			self.value = randomlib.uniform(self.random.low, self.random.high)
+			print("random", self.value)
+	
+	def __float__(self):
+		return float(self.value)
+	
+	def __add__(self, other):
+		return self.value + other
+	
+	def __radd__(self, other):
+		return other + self.value
+	
+	def __sub__(self, other):
+		return self.value - other
+	
+	def __rsub__(self, other):
+		return other - self.value
+	
+	def __mul__(self, other):
+		return self.value * other
+	
+	def __rmul__(self, other):
+		return other * self.value
+	
+	def __truediv__(self, other):
+		return self.value/other
+	
+	def __rtruediv__(self, other):
+		return other/self.value
+
+class Random:
+	def __init__(self, low, high):
+		self.low = low
+		self.high = high
+
 
 context = Context()

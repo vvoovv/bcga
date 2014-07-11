@@ -24,11 +24,16 @@ def apply(ruleFile, startRule="Lot"):
 	context.bm = bmesh.from_edit_mesh(mesh)
 	# list of unused faces for removal
 	context.facesForRemoval = []
+	# initialize the context
+	context.init()
 	
 	# remove extension from ruleFile if it was provided
 	ruleFile, fileExtension = os.path.splitext(ruleFile)
-	_file, _pathname, _description = imp.find_module(os.path.basename(ruleFile), [os.path.dirname(ruleFile)])
-	module = imp.load_module("simple01", _file, _pathname, _description)
+	moduleName = os.path.basename(ruleFile)
+	_file, _pathname, _description = imp.find_module(moduleName, [os.path.dirname(ruleFile)])
+	module = imp.load_module(moduleName, _file, _pathname, _description)
+	# prepare context internal stuff
+	context.prepare()
 	getattr(module, startRule)()
 	
 	# remove unused faces from context.facesForRemoval
