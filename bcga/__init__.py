@@ -1,4 +1,4 @@
-import imp, os
+import imp, os, inspect
 import bpy, bmesh
 
 from cga import context
@@ -7,6 +7,8 @@ from .op_comp import Comp
 from .op_split import Split
 from .op_extrude import Extrude
 from .op_color import Color
+
+from cga.base import Attr
 
 
 def buildFactory():
@@ -34,6 +36,22 @@ def apply(ruleFile, startRule="Lot"):
 	module = imp.load_module(moduleName, _file, _pathname, _description)
 	# prepare context internal stuff
 	context.prepare()
+	attrNames = []
+	for m in inspect.getmembers(module, isAttr):
+		attrName = m[0]
+		attrNames.append(attrName)
+		attr = m[1]
+		setattr(
+			bpy.types.Scene,
+			attrName,
+			bpy.props.FloatProperty(
+				name = attrName,
+				description = "Path to a rule file",
+				default = attr.value
+			)
+		)
+	context.attrNames = attrNames
+	# evaluate the rule set
 	getattr(module, startRule)()
 	
 	# remove unused faces from context.facesForRemoval
@@ -48,5 +66,9 @@ def apply(ruleFile, startRule="Lot"):
 	# cleaning context from blender specific members
 	delattr(context, "bm")
 	delattr(context, "facesForRemoval")
+
+def isAttr(member):
+	"""A predicate for the inspect.getmembers call"""
+	return isinstance(member, Attr)
 
 buildFactory()

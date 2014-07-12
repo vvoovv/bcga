@@ -24,7 +24,9 @@ if path:
 import bpy
 import bcga
 
-bpy.types.Object.ruleFile = bpy.props.StringProperty(
+from cga import context as cgaContext
+
+bpy.types.Scene.ruleFile = bpy.props.StringProperty(
 	name = "Rule file",
 	description = "Path to a rule file",
 	subtype = "FILE_PATH"
@@ -38,11 +40,14 @@ class CgaMainPanel(bpy.types.Panel):
 	bl_label = "Main"
 	
 	def draw(self, context):
-		obj = context.active_object
+		scene = context.scene
 		
 		layout = self.layout
-		layout.row().prop(obj, "ruleFile")
+		layout.row().prop(scene, "ruleFile")
 		layout.row().operator("object.apply_cga_rule")
+		if hasattr(cgaContext, "attrNames"):
+			for attrName in cgaContext.attrNames:
+				layout.row().prop(scene, attrName)
 
 class Cga(bpy.types.Operator):
 	bl_idname = "object.apply_cga_rule"
@@ -50,7 +55,7 @@ class Cga(bpy.types.Operator):
 	bl_options = {"REGISTER", "UNDO"}
 	
 	def execute(self, context):
-		ruleFile = context.active_object.ruleFile
+		ruleFile = context.scene.ruleFile
 		if len(ruleFile)>1 and ruleFile[:2]=="//":
 			ruleFile = ruleFile[2:]
 		ruleFile = os.path.join(os.path.dirname(bpy.data.filepath), ruleFile)

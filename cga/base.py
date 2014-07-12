@@ -95,18 +95,19 @@ class Context:
 	def popExecutionState(self):
 		self.stack.pop()
 	
-	def registerRandomAttr(self, attr):
+	def registerAttr(self, attr):
 		self.attrs.append(attr)
 		
 	def init(self):
-		# the list of random attrs
+		# the list of attrs
 		self.attrs = []
 	
 	def prepare(self):
 		"""The method does all necessary preparations for a rule evaluation."""
-		# set random values for the attrs from self.attr
+		# set random values for the random attrs from self.attrs
 		for attr in self.attrs:
-			attr.setValue()
+			if attr.random:
+				attr.setValue()
 
 #
 # Attributes stuff
@@ -122,16 +123,17 @@ def random(low, high):
 class Attr:
 	def __init__(self, value):
 		if (isinstance(value, Random)):
+			self.value = None
 			self.random = value
-			context.registerRandomAttr(self)
 		else:
 			self.value = value
+			self.random = None
+		context.registerAttr(self)
 	
 	def setValue(self):
 		"""Sets a value for the attribute. Relevant only for random attributes"""
 		if hasattr(self, "random"):
 			self.value = randomlib.uniform(self.random.low, self.random.high)
-			print("random", self.value)
 	
 	def __float__(self):
 		return float(self.value)
