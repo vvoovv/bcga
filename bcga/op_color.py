@@ -2,11 +2,9 @@ import bpy
 import cga
 from cga import context
 
-# a dict to cache Blender material for each color
-materialCache = {}
-
 class Color(cga.op_color.Color):
 	def execute(self):
+		materialCache = context.materialCache
 		colorHex = self.colorHex
 		if colorHex in materialCache:
 			materialIndex = materialCache[colorHex]
