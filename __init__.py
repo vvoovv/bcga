@@ -25,6 +25,7 @@ import bpy
 import bcga
 
 from cga import context as cgaContext
+from cga.base import AttrFloat, AttrColor
 
 bpy.types.Scene.ruleFile = bpy.props.StringProperty(
 	name = "Rule file",
@@ -33,7 +34,12 @@ bpy.types.Scene.ruleFile = bpy.props.StringProperty(
 )
 
 class CustomFloatProperty(bpy.types.PropertyGroup):
+	"""A bpy.types.PropertyGroup descendant for bpy.props.CollectionProperty"""
 	value = bpy.props.FloatProperty(name="")
+
+class CustomColorProperty(bpy.types.PropertyGroup):
+	"""A bpy.types.PropertyGroup descendant for bpy.props.CollectionProperty"""
+	value = bpy.props.StringProperty(name="")
 
 class CgaMainPanel(bpy.types.Panel):
 	bl_space_type = "VIEW_3D"
@@ -55,7 +61,8 @@ class Cga(bpy.types.Operator):
 	bl_label = "Apply CGA rule"
 	bl_options = {"REGISTER", "UNDO"}
 	
-	collection = bpy.props.CollectionProperty(type=CustomFloatProperty)
+	collectionFloat = bpy.props.CollectionProperty(type=CustomFloatProperty)
+	collectionColor = bpy.props.CollectionProperty(type=CustomColorProperty)
 	
 	def invoke(self, context, event):
 		ruleFile = context.scene.ruleFile
@@ -66,13 +73,18 @@ class Cga(bpy.types.Operator):
 			module,attrs = bcga.apply(ruleFile)
 			self.module = module
 			self.attrs = attrs
-			# new attrs arrived, so clean self.collection items
-			self.collection.clear()
+			# new attrs arrived, so clean all collections
+			self.collectionFloat.clear()
+			self.collectionColor.clear()
 			# for each entry in self.attrs create a new item in self.collection
 			for attr in self.attrs:
-				item = self.collection.add()
-				item.value = attr[1].value
-				attr[1].guiItem = item
+				attr = attr[1]
+				if isinstance(attr, AttrFloat):
+					collectionItem = self.collectionFloat.add()
+				elif isinstance(attr, AttrColor):
+					collectionItem = self.collectionColor.add()
+				collectionItem.value = attr.value
+				attr.collectionItem = collectionItem
 		else:
 			self.report({"ERROR"}, "The rule file %s not found" % ruleFile)
 		return {"FINISHED"}
@@ -81,7 +93,7 @@ class Cga(bpy.types.Operator):
 		for attr in self.attrs:
 			attrName = attr[0]
 			attr = attr[1]
-			attr.value = getattr(attr.guiItem, "value")
+			attr.value = getattr(attr.collectionItem, "value")
 		bcga.apply(self.module)
 		return {"FINISHED"}
 	
@@ -93,7 +105,7 @@ class Cga(bpy.types.Operator):
 				attrName = attr[0]
 				row = self.layout.split()
 				row.label(attrName+":")
-				row.prop(attr[1].guiItem, "value")
+				row.prop(attr[1].collectionItem, "value")
 
 
 def register():

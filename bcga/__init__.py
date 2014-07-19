@@ -39,6 +39,7 @@ def apply(ruleFile, startRule="Lot"):
 		moduleName = os.path.basename(ruleFile)
 		_file, _pathname, _description = imp.find_module(moduleName, [os.path.dirname(ruleFile)])
 		module = imp.load_module(moduleName, _file, _pathname, _description)
+		_file.close()
 
 		# prepare context internal stuff
 		context.prepare()

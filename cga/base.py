@@ -114,13 +114,20 @@ class Context:
 #
 
 def attr(value):
-	#return context.factory["Attr"](value)
-	return Attr(value)
+	if isinstance(value, str) and value[0]=="#":
+		result = AttrColor(value)
+	else:
+		result = AttrFloat(value)
+	return result
 
 def random(low, high):
 	return Random(low, high)
 
 class Attr:
+	def setValue(self):
+		pass
+
+class AttrFloat(Attr):
 	def __init__(self, value):
 		if (isinstance(value, Random)):
 			self.value = None
@@ -161,6 +168,15 @@ class Attr:
 	
 	def __rtruediv__(self, other):
 		return other/self.value
+
+
+class AttrColor(Attr):
+	def __init__(self, value):
+		self.value = value
+	
+	def __str__(self):
+		return self.value
+
 
 class Random:
 	def __init__(self, low, high):
