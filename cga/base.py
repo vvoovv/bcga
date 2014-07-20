@@ -107,7 +107,7 @@ class Context:
 		# set random values for the random attrs from self.attrs
 		for attr in self.attrs:
 			if attr.random:
-				attr.setValue()
+				attr.assignValue()
 
 #
 # Attributes stuff
@@ -123,9 +123,14 @@ def attr(value):
 def random(low, high):
 	return Random(low, high)
 
+
 class Attr:
-	def setValue(self):
-		pass
+	def setValue(self, value):
+		self.value = value
+	
+	def getValue(self):
+		return self.value
+
 
 class AttrFloat(Attr):
 	def __init__(self, value):
@@ -137,9 +142,9 @@ class AttrFloat(Attr):
 			self.random = None
 		context.registerAttr(self)
 	
-	def setValue(self):
-		"""Sets a value for the attribute. Relevant only for random attributes"""
-		if hasattr(self, "random"):
+	def assignValue(self):
+		"""Assigns a value for the attribute. Relevant only for random attributes"""
+		if self.random:
 			self.value = randomlib.uniform(self.random.low, self.random.high)
 	
 	def __float__(self):
@@ -176,7 +181,14 @@ class AttrColor(Attr):
 	
 	def __str__(self):
 		return self.value
-
+	
+	def getValue(self):
+		# convert from the hex string to a tuple
+		return tuple( map(lambda c: c/255, bytes.fromhex(self.value[-6:])) )
+	
+	def setValue(self, value):
+		# convert from the tuple to a hex string
+		self.value = "#%02x%02x%02x" % tuple( map(lambda c: round(c*255), value) )
 
 class Random:
 	def __init__(self, low, high):

@@ -39,7 +39,7 @@ class CustomFloatProperty(bpy.types.PropertyGroup):
 
 class CustomColorProperty(bpy.types.PropertyGroup):
 	"""A bpy.types.PropertyGroup descendant for bpy.props.CollectionProperty"""
-	value = bpy.props.StringProperty(name="")
+	value = bpy.props.FloatVectorProperty(name="", subtype='COLOR', min=0.0, max=1.0)
 
 class CgaMainPanel(bpy.types.Panel):
 	bl_space_type = "VIEW_3D"
@@ -83,7 +83,7 @@ class Cga(bpy.types.Operator):
 					collectionItem = self.collectionFloat.add()
 				elif isinstance(attr, AttrColor):
 					collectionItem = self.collectionColor.add()
-				collectionItem.value = attr.value
+				collectionItem.value = attr.getValue()
 				attr.collectionItem = collectionItem
 		else:
 			self.report({"ERROR"}, "The rule file %s not found" % ruleFile)
@@ -93,7 +93,7 @@ class Cga(bpy.types.Operator):
 		for attr in self.attrs:
 			attrName = attr[0]
 			attr = attr[1]
-			attr.value = getattr(attr.collectionItem, "value")
+			attr.setValue(getattr(attr.collectionItem, "value"))
 		bcga.apply(self.module)
 		return {"FINISHED"}
 	
