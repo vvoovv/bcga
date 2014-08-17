@@ -1,31 +1,31 @@
 bl_info = {
-	"name": "CGA",
+	"name": "Prokitektura",
 	"author": "Vladimir Elistratov <vladimir.elistratov@gmail.com>",
 	"version": (0, 0, 0),
 	"blender": (2, 7, 0),
 	"location": "View3D > Tool Shelf",
-	"description": "CGA implementation for Blender",
+	"description": "Prokitektura implementation for Blender",
 	"warning": "",
-	"wiki_url": "https://github.com/vvoovv/blender-cga/wiki/",
-	"tracker_url": "https://github.com/vvoovv/blender-cga/issues",
+	"wiki_url": "https://github.com/prokitektura/prokitektura-blender/wiki/",
+	"tracker_url": "https://github.com/prokitektura/prokitektura-blender/issues",
 	"support": "COMMUNITY",
-	"category": "CGA",
+	"category": "Prokitektura",
 }
 
 import sys, os
 for path in sys.path:
-	if "bcga" in path:
+	if "bpro" in path:
 		path = None
 		break
 if path:
-	# we need to add path to bcga package
+	# we need to add path to bpro package
 	sys.path.append(os.path.dirname(__file__))
 
 import bpy
-import bcga
+import bpro
 
-from cga import context as cgaContext
-from cga.base import AttrFloat, AttrColor
+from pro import context as proContext
+from pro.base import AttrFloat, AttrColor
 
 bpy.types.Scene.ruleFile = bpy.props.StringProperty(
 	name = "Rule file",
@@ -41,11 +41,11 @@ class CustomColorProperty(bpy.types.PropertyGroup):
 	"""A bpy.types.PropertyGroup descendant for bpy.props.CollectionProperty"""
 	value = bpy.props.FloatVectorProperty(name="", subtype='COLOR', min=0.0, max=1.0)
 
-class CgaMainPanel(bpy.types.Panel):
+class ProMainPanel(bpy.types.Panel):
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "TOOLS"
 	#bl_context = "objectmode"
-	bl_category = "CGA Shape Grammar"
+	bl_category = "Prokitektura"
 	bl_label = "Main"
 	
 	def draw(self, context):
@@ -54,11 +54,11 @@ class CgaMainPanel(bpy.types.Panel):
 		layout = self.layout
 		box = layout.box()
 		box.row().prop(scene, "ruleFile")
-		box.row().operator("object.apply_cga_rule")
+		box.row().operator("object.apply_pro_rule")
 
-class Cga(bpy.types.Operator):
-	bl_idname = "object.apply_cga_rule"
-	bl_label = "Apply CGA rule"
+class Pro(bpy.types.Operator):
+	bl_idname = "object.apply_pro_rule"
+	bl_label = "Apply Prokitektura rule"
 	bl_options = {"REGISTER", "UNDO"}
 	
 	collectionFloat = bpy.props.CollectionProperty(type=CustomFloatProperty)
@@ -70,7 +70,7 @@ class Cga(bpy.types.Operator):
 			ruleFile = ruleFile[2:]
 		ruleFile = os.path.join(os.path.dirname(bpy.data.filepath), ruleFile)
 		if os.path.isfile(ruleFile):
-			module,attrs = bcga.apply(ruleFile)
+			module,attrs = bpro.apply(ruleFile)
 			self.module = module
 			self.attrs = attrs
 			# new attrs arrived, so clean all collections
@@ -94,7 +94,7 @@ class Cga(bpy.types.Operator):
 			attrName = attr[0]
 			attr = attr[1]
 			attr.setValue(getattr(attr.collectionItem, "value"))
-		bcga.apply(self.module)
+		bpro.apply(self.module)
 		return {"FINISHED"}
 	
 	def draw(self, context):

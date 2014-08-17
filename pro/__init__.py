@@ -2,7 +2,7 @@ from .op_split import split
 
 from .op_comp import comp
 from .op_comp import f, e, v
-from .op_comp import front, side, top
+from .op_comp import front, back, left, right, top, bottom, side, all
 
 from .op_extrude import extrude
 
@@ -18,8 +18,8 @@ z = "z"
 
 def rule(operator):
 	def inner(*args, **kwargs):
-		state = context.getExecutionState()
-		if not state['valid']:
+		state = context.getState()
+		if not state.valid:
 			print(operator.__name__, "invalid state")
 		if context.immediateExecution:
 			operator(*args, **kwargs)

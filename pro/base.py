@@ -65,6 +65,13 @@ class OperatorDef:
 		return result
 
 
+class State:
+	def __init__(self, **kwargs):
+		for k in kwargs:
+			setattr(self, k, kwargs[k])
+		self.valid = True
+
+
 class Context:
 	def __init__(self):
 		self.reset()
@@ -79,28 +86,26 @@ class Context:
 	def __call__(self):
 		self.reset()
 	
-	def getExecutionState(self):
-		if len(self.stack)==0:
-			state = {'valid': True}
-			self.stack.append(state)
+	def getState(self):
 		return self.stack[-1]
 	
-	def pushExecutionState(self, **kwargs):
+	def pushState(self, **kwargs):
 		# create a new execution state entry
-		state = kwargs
-		state['valid'] = True
+		state = State(**kwargs)
 		self.stack.append(state)
 		return state
 	
-	def popExecutionState(self):
+	def popState(self):
 		self.stack.pop()
 	
 	def registerAttr(self, attr):
 		self.attrs.append(attr)
 		
-	def init(self):
+	def init(self, shape):
 		# the list of attrs
 		self.attrs = []
+		# push the initial state with the initial shape to the execution stack
+		self.pushState(shape=shape)
 	
 	def prepare(self):
 		"""The method does all necessary preparations for a rule evaluation."""
@@ -173,6 +178,12 @@ class AttrFloat(Attr):
 	
 	def __rtruediv__(self, other):
 		return other/self.value
+	
+	def __neg__(self):
+		return -self.value
+	
+	def __abs__(self):
+		return abs(self.value)
 
 
 class AttrColor(Attr):

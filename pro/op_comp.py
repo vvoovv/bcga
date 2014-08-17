@@ -8,8 +8,13 @@ e = "e"
 v = "v"
 
 front = "front"
-side = "side"
+back = "back"
+left = "left"
+right = "right"
 top = "top"
+bottom = "bottom"
+side = "side"
+all = "all"
 
 from .base import ComplexOperator, context
 

@@ -1,14 +1,16 @@
 import imp, os, inspect
 import bpy, bmesh
 
-from cga import context
+from pro import context
 
 from .op_comp import Comp
 from .op_split import Split
 from .op_extrude import Extrude
 from .op_color import Color
 
-from cga.base import Attr
+from pro.base import Attr
+
+from .shape import getInitialShape
 
 
 def buildFactory():
@@ -20,7 +22,7 @@ def buildFactory():
 
 def apply(ruleFile, startRule="Lot"):
 	attrs = None
-	mesh = bpy.context.active_object.data
+	mesh = bpy.context.object.data
 	# all operations will be done in the EDIT mode
 	enableEditMode = bpy.context.mode != "EDIT_MESH"
 	bpy.ops.object.mode_set(mode="EDIT")
@@ -31,11 +33,11 @@ def apply(ruleFile, startRule="Lot"):
 	# a dict to cache Blender material for each color
 	context.materialCache = {}
 	# initialize the context
-	context.init()
+	context.init(getInitialShape(context.bm))
 	
 	if isinstance(ruleFile, str):
 		# remove extension from ruleFile if it was provided
-		ruleFile, fileExtension = os.path.splitext(ruleFile)
+		ruleFile = os.path.splitext(ruleFile)[0]
 		moduleName = os.path.basename(ruleFile)
 		_file, _pathname, _description = imp.find_module(moduleName, [os.path.dirname(ruleFile)])
 		module = imp.load_module(moduleName, _file, _pathname, _description)
