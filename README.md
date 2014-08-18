@@ -1,3 +1,5 @@
+### Prokitektura
+
 Prokitektura is a procedural and iterative approach to generate architectural 3D models. A set of small Python functions called rules is used to generate 3D models of buildings. Each subsequent rule refines the model and adds additional details. The concept of prokitektura was inspired by CGA shape grammar developed in ETH Zurich.
 
 Here is a brief description of the 3D model generation process on a simple example. The process starts from a 2D building outline. Its extrusion is created with the desired height. The extruded 3D shape is decomposed into a number of vertical rectangles corresponding to building facades and the upper polygon used as the base for the building roof. Floors are cut for each facade. Each floor is cut into sections with windows. Each section can be refined further.
