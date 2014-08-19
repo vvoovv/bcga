@@ -18,10 +18,10 @@ all = "all"
 
 from .base import ComplexOperator, context
 
-def comp(compSelector):
-	return context.factory["Comp"](compSelector)
+def decompose(selector=None):
+	return context.factory["Decompose"](selector)
 
-class Comp(ComplexOperator):
-	def __init__(self, compSelector):
-		self.compSelector = compSelector
+class Decompose(ComplexOperator):
+	def __init__(self, selector):
+		self.selector = selector
 		super().__init__()

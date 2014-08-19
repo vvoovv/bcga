@@ -3,7 +3,7 @@ import bpy, bmesh
 
 from pro import context
 
-from .op_comp import Comp
+from bpro.op_decompose import Decompose
 from .op_split import Split
 from .op_extrude import Extrude
 from .op_color import Color
@@ -15,7 +15,7 @@ from .shape import getInitialShape
 
 def buildFactory():
 	factory = context.factory
-	factory["Comp"] = Comp
+	factory["Decompose"] = Decompose
 	factory["Split"] = Split
 	factory["Extrude"] = Extrude
 	factory["Color"] = Color

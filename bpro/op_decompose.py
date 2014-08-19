@@ -1,7 +1,7 @@
 import pro
 from pro import context
 
-class Comp(pro.op_comp.Comp):
+class Decompose(pro.op_decompose.Decompose):
 	
 	def execute(self):
 		state = context.getState()
