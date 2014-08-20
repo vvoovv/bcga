@@ -6,7 +6,7 @@ class Operator:
 			self.execute()
 	
 	def __rrshift__(self, value):
-		self.value = value.value if isinstance(value, Attr) else value
+		self.value = value.value if isinstance(value, Param) else value
 		return self
 	
 	def execute(self, *args):
@@ -98,38 +98,38 @@ class Context:
 	def popState(self):
 		self.stack.pop()
 	
-	def registerAttr(self, attr):
-		self.attrs.append(attr)
+	def registerParam(self, param):
+		self.params.append(param)
 		
 	def init(self, shape):
-		# the list of attrs
-		self.attrs = []
+		# the list of params
+		self.params = []
 		# push the initial state with the initial shape to the execution stack
 		self.pushState(shape=shape)
 	
 	def prepare(self):
 		"""The method does all necessary preparations for a rule evaluation."""
-		# set random values for the random attrs from self.attrs
-		for attr in self.attrs:
-			if attr.random:
-				attr.assignValue()
+		# set random values for the random params from self.params
+		for param in self.params:
+			if param.random:
+				param.assignValue()
 
 #
-# Attributes stuff
+# Parameters stuff
 #
 
-def attr(value):
+def param(value):
 	if isinstance(value, str) and value[0]=="#":
-		result = AttrColor(value)
+		result = ParamColor(value)
 	else:
-		result = AttrFloat(value)
+		result = ParamFloat(value)
 	return result
 
 def random(low, high):
 	return Random(low, high)
 
 
-class Attr:
+class Param:
 	def setValue(self, value):
 		self.value = value
 	
@@ -137,7 +137,7 @@ class Attr:
 		return self.value
 
 
-class AttrFloat(Attr):
+class ParamFloat(Param):
 	def __init__(self, value):
 		if (isinstance(value, Random)):
 			self.value = None
@@ -145,10 +145,10 @@ class AttrFloat(Attr):
 		else:
 			self.value = value
 			self.random = None
-		context.registerAttr(self)
+		context.registerParam(self)
 	
 	def assignValue(self):
-		"""Assigns a value for the attribute. Relevant only for random attributes"""
+		"""Assigns a value for the parameter. Relevant only for random parameters"""
 		if self.random:
 			self.value = randomlib.uniform(self.random.low, self.random.high)
 	
@@ -186,7 +186,7 @@ class AttrFloat(Attr):
 		return abs(self.value)
 
 
-class AttrColor(Attr):
+class ParamColor(Param):
 	def __init__(self, value):
 		self.value = value
 	

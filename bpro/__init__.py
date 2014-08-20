@@ -8,7 +8,7 @@ from .op_split import Split
 from .op_extrude import Extrude
 from .op_color import Color
 
-from pro.base import Attr
+from pro.base import Param
 
 from .shape import getInitialShape
 
@@ -21,7 +21,7 @@ def buildFactory():
 	factory["Color"] = Color
 
 def apply(ruleFile, startRule="Lot"):
-	attrs = None
+	params = None
 	mesh = bpy.context.object.data
 	# all operations will be done in the EDIT mode
 	enableEditMode = bpy.context.mode != "EDIT_MESH"
@@ -45,8 +45,8 @@ def apply(ruleFile, startRule="Lot"):
 
 		# prepare context internal stuff
 		context.prepare()
-		# attrs is a list of tuples: (attrName, instanceofAttrClass)
-		attrs = [m for m in inspect.getmembers(module, isAttr)]
+		# params is a list of tuples: (paramName, instanceofParamClass)
+		params = [m for m in inspect.getmembers(module, isParam)]
 	else:
 		# ruleFile is actually a module
 		module = ruleFile
@@ -70,10 +70,10 @@ def apply(ruleFile, startRule="Lot"):
 	delattr(context, "bm")
 	delattr(context, "facesForRemoval")
 	
-	return (module, attrs)
+	return (module, params)
 
-def isAttr(member):
+def isParam(member):
 	"""A predicate for the inspect.getmembers call"""
-	return isinstance(member, Attr)
+	return isinstance(member, Param)
 
 buildFactory()

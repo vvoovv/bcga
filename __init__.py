@@ -25,7 +25,7 @@ import bpy
 import bpro
 
 from pro import context as proContext
-from pro.base import AttrFloat, AttrColor
+from pro.base import ParamFloat, ParamColor
 
 bpy.types.Scene.ruleFile = bpy.props.StringProperty(
 	name = "Rule file",
@@ -70,42 +70,42 @@ class Pro(bpy.types.Operator):
 			ruleFile = ruleFile[2:]
 		ruleFile = os.path.join(os.path.dirname(bpy.data.filepath), ruleFile)
 		if os.path.isfile(ruleFile):
-			module,attrs = bpro.apply(ruleFile)
+			module,params = bpro.apply(ruleFile)
 			self.module = module
-			self.attrs = attrs
-			# new attrs arrived, so clean all collections
+			self.params = params
+			# new params arrived, so clean all collections
 			self.collectionFloat.clear()
 			self.collectionColor.clear()
-			# for each entry in self.attrs create a new item in self.collection
-			for attr in self.attrs:
-				attr = attr[1]
-				if isinstance(attr, AttrFloat):
+			# for each entry in self.params create a new item in self.collection
+			for param in self.params:
+				param = param[1]
+				if isinstance(param, ParamFloat):
 					collectionItem = self.collectionFloat.add()
-				elif isinstance(attr, AttrColor):
+				elif isinstance(param, ParamColor):
 					collectionItem = self.collectionColor.add()
-				collectionItem.value = attr.getValue()
-				attr.collectionItem = collectionItem
+				collectionItem.value = param.getValue()
+				param.collectionItem = collectionItem
 		else:
 			self.report({"ERROR"}, "The rule file %s not found" % ruleFile)
 		return {"FINISHED"}
 	
 	def execute(self, context):
-		for attr in self.attrs:
-			attrName = attr[0]
-			attr = attr[1]
-			attr.setValue(getattr(attr.collectionItem, "value"))
+		for param in self.params:
+			paramName = param[0]
+			param = param[1]
+			param.setValue(getattr(param.collectionItem, "value"))
 		bpro.apply(self.module)
 		return {"FINISHED"}
 	
 	def draw(self, context):
 		layout = self.layout
-		if hasattr(self, "attrs"):
-			# self.attrs is a list of tuples: (attrName, instanceofAttrClass)
-			for attr in self.attrs:
-				attrName = attr[0]
+		if hasattr(self, "params"):
+			# self.params is a list of tuples: (paramName, instanceofParamClass)
+			for param in self.params:
+				paramName = param[0]
 				row = self.layout.split()
-				row.label(attrName+":")
-				row.prop(attr[1].collectionItem, "value")
+				row.label(paramName+":")
+				row.prop(param[1].collectionItem, "value")
 
 
 def register():
