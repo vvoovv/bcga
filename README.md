@@ -11,3 +11,5 @@ Prokitektura can be used to code existing buildings from a number of photos as w
 An example set of prokitektura rules can be found [here](https://github.com/vvoovv/prokitektura-examples/blob/master/examples/simple01.py). The building model generated with it can be seen in the [video](http://www.youtube.com/watch?v=qmpAsEqm6mk).
 
 The basic concepts of prokitektura are explained in the [tutorial](https://github.com/vvoovv/prokitektura-blender/wiki/Tutorial).
+
+Currently I am working on textures support.
