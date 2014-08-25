@@ -7,6 +7,7 @@ from bpro.op_decompose import Decompose
 from .op_split import Split
 from .op_extrude import Extrude
 from .op_color import Color
+from .op_texture import Texture
 
 from pro.base import Param
 
@@ -19,10 +20,16 @@ def buildFactory():
 	factory["Split"] = Split
 	factory["Extrude"] = Extrude
 	factory["Color"] = Color
+	factory["Texture"] = Texture
 
 def apply(ruleFile, startRule="Lot"):
+	# setting the path to the rule for context
+	context.ruleFile = ruleFile if isinstance(ruleFile, str) else ruleFile.__file__
 	params = None
 	mesh = bpy.context.object.data
+	# create a uv layer for the mesh
+	# TODO: a separate pass through the rules is needed to find out how many uv layers are needed 
+	mesh.uv_textures.new(Texture.defaultLayer)
 	# all operations will be done in the EDIT mode
 	enableEditMode = bpy.context.mode != "EDIT_MESH"
 	bpy.ops.object.mode_set(mode="EDIT")

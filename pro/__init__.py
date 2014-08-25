@@ -8,6 +8,8 @@ from .op_extrude import extrude
 
 from .op_color import color
 
+from .op_texture import texture
+
 from .base import param, random
 from .base import context
 from .base import Rule

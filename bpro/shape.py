@@ -30,12 +30,8 @@ class Shape2d:
         self.firstLoop = firstLoop
         # set the origin of the shape coordinate system
         self.origin = firstLoop.vert.co
-        # inversed translation matrix from global origin to the shape origin
-        # translationMatrix = mathutils.Matrix.Translation(-self.origin)
-        # calculating transformation matrix (from the global coordinate system to the shape coordinate system)
-        # remember inversed(TRS) = inversed(S)*inversed(R)*inversed(T), so:
-        #self.matrix = rotationMatrix*translationMatrix
-        #self.rotationMatrix = rotation_zNormal_xHorizontal(firstLoop)
+        # the transformation matrix from the global coordinate system to the shape coordinate system
+        self.matrix = None
     
     def extrude(self, depth):
         bm = context.bm
@@ -81,6 +77,33 @@ class Shape2d:
             pass
         
         return Shape3d(shapes, self.firstLoop)
+
+    def getMatrix(self):
+        """
+        Returns the transformation matrix from the global coordinate system to the shape coordinate system
+        """
+        if not self.matrix:
+            # translationMatrix is inversed translation matrix from the origin of the global coordinate system to the shape origin
+            translationMatrix = mathutils.Matrix.Translation(-self.origin)
+            # inversed rotation matrix:
+            rotationMatrix = rotation_zNormal_xHorizontal(self.firstLoop, self.getNormal())
+            # remember inversed(TRS) = inversed(S)*inversed(R)*inversed(T), so in our case:
+            self.matrix = rotationMatrix*translationMatrix
+        return self.matrix
+    
+    def getNormal(self):
+        """
+        Returns the normal to the shape's face.
+        A newly created face (instance of BMFace) has a zero normal
+        So we have to calculated explicitly
+        """
+        loop = self.firstLoop
+        v1 = getEndVertex(loop).co - loop.vert.co
+        loop = loop.link_loop_next
+        v2 = getEndVertex(loop).co - loop.vert.co
+        normal = v1.cross(v2)
+        normal.normalize()
+        return normal
 
 
 class Rectangle(Shape2d):
