@@ -11,15 +11,15 @@ class Texture(Operator):
     
     def __init__(self, path, width, height, **kwargs):
         self.path = os.path.join(os.path.dirname(context.ruleFile), "assets", path)
-        self.layer = kwargs["layer"] if "layer" in kwargs else "default"
+        self.layer = kwargs["layer"] if "layer" in kwargs else self.defaultLayer
         self.width = width
         self.height = height
         super().__init__()
     
     def execute(self):
         shape = context.getState().shape
-        loops = shape.face.loops
-        uv_layer = context.bm.loops.layers.uv[self.defaultLayer]
+        bm = context.bm
+        uv_layer = bm.loops.layers.uv[self.layer]
         if self.path=="" and self.width==0 and self.height==0:
             pass
         else:
@@ -42,6 +42,7 @@ class Texture(Operator):
             # we use the path to the texture as the key of materialCache
             if name in materialCache:
                 materialIndex = materialCache[name]
+                blenderTexture = bpy.context.object.data.materials[materialIndex].texture_slots[name].texture
             else:
                 blenderTexture = bpy.data.textures.new(name, type = "IMAGE")
                 blenderTexture.image = bpy.data.images.load(path)
@@ -52,8 +53,11 @@ class Texture(Operator):
                 textureSlot = material.texture_slots.add()
                 textureSlot.texture = blenderTexture
                 textureSlot.texture_coords = "UV"
-                textureSlot.uv_layer = self.defaultLayer
+                textureSlot.uv_layer = self.layer
                 # remember the material for the future use
                 materialCache[name] = materialIndex
                 bpy.context.object.data.materials.append(material)
             shape.face.material_index = materialIndex
+            shape.addUVlayer(self.layer)
+            # set preview texture
+            shape.face[bm.faces.layers.tex[self.layer]].image = blenderTexture.image

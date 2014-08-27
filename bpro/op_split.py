@@ -11,7 +11,7 @@ class Split(pro.op_split.Split):
 		cuts = shape.split(self.direction, self.parts)
 		
 		# apply the rule for each cut
-		for splitIndex,cut in enumerate(cuts):
-			context.pushState(shape=cut[0])
-			cut[1].execute()
+		for cut in cuts:
+			context.pushState(shape=cut[1])
+			cut[2].execute()
 			context.popState()

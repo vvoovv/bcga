@@ -103,6 +103,4 @@ def getEndVertex(loop):
     """
     Returns the end vertex for the loop
     """
-    v0 = loop.vert
-    v = loop.edge.verts
-    return v[1] if v0==v[0] else v[0]
+    return loop.link_loop_next.vert

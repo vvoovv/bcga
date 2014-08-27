@@ -17,4 +17,5 @@ class Color(pro.op_color.Color):
 			bpy.context.object.data.materials.append(material)
 		# assign material to the bmesh face
 		shape = context.getState().shape
+		shape.clearUVlayers()
 		shape.face.material_index = materialIndex

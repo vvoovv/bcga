@@ -1,4 +1,4 @@
-import bmesh, mathutils
+import bpy, bmesh, mathutils
 from pro import context
 from pro import x, y, z
 from pro import front, back, left, right, top, bottom, side, all
@@ -32,6 +32,7 @@ class Shape2d:
         self.origin = firstLoop.vert.co
         # the transformation matrix from the global coordinate system to the shape coordinate system
         self.matrix = None
+        self.uvLayers = set()
     
     def extrude(self, depth):
         bm = context.bm
@@ -104,6 +105,12 @@ class Shape2d:
         normal = v1.cross(v2)
         normal.normalize()
         return normal
+    
+    def addUVlayer(self, layer):
+        self.uvLayers.add(layer)
+    
+    def clearUVlayers(self):
+        self.uvLayers.clear()
 
 
 class Rectangle(Shape2d):
@@ -113,18 +120,18 @@ class Rectangle(Shape2d):
     
     def split(self, direction, parts):
         """
-        Returns a list of tuples (cutShape, ruleForTheCutShape)
+        Returns a list of lists (cutValue between 0 and 1, cutShape, ruleForTheCutShape)
         """
         # we consider that x-axis of the shape coordinate system is oriented along the firstLoop
+        firstLoop = self.firstLoop
         
         # referenceLoop is oriented along the positive direction
-        referenceLoop = self.firstLoop if direction==x else self.firstLoop.link_loop_next
+        referenceLoop = firstLoop if direction==x else firstLoop.link_loop_next
         # vertices of the referenceLoop
         v = referenceLoop.edge.verts
         cuts = calculateSplit(parts, (v[1].co-v[0].co).length)
         
         bm = context.bm
-        
         
         # the loop opposite to referenceLoop
         oppositeLoop = referenceLoop.link_loop_next.link_loop_next
@@ -150,21 +157,62 @@ class Rectangle(Shape2d):
             v1 = bm.verts.new(v1)
             v2 = bm.verts.new(v2)
             verts = (prevVert1, v1, v2, prevVert2) if direction==x else (prevVert2, prevVert1, v1, v2)
-            # keep the newly cut rectangle 2D-shape in cut[0] 
-            cut[0] = self.createSplitShape(bm, verts)
+            # the element of the list cut with index 1 was reserved for the 2D-shape
+            cut[1] = self.createSplitShape(verts)
             prevVert1 = v1
             prevVert2 = v2
         # create a face for the last cut section (cutValue=1)
         verts = (prevVert1, end1, end2, prevVert2) if direction==x else (prevVert2, prevVert1, end1, end2)
-        cuts[-1][0] = self.createSplitShape(bm, verts)
+        cuts[-1][1] = self.createSplitShape(verts)
         
         context.facesForRemoval.append(self.face)
+        
+        if len(self.uvLayers)>0:
+            materialIndex = self.face.material_index
+            # blenderTexture is needed to set preview texture
+            blenderTexture = bpy.context.object.data.materials[materialIndex].texture_slots[0].texture
+            # Assign uv coordinates for each uvLayer and for each newly cut shape
+            # The uv coordinates are inherited from the parent shape
+            for layer in self.uvLayers:
+                uv_layer = bm.loops.layers.uv[layer]
+                
+                # origin for the uv space
+                origin = firstLoop[uv_layer].uv
+                # end point of vector the uv space, oriented along u-axis
+                endU = firstLoop.link_loop_next[uv_layer].uv
+                # end point of vector the uv space, oriented along v-axis
+                endV = firstLoop.link_loop_prev[uv_layer].uv
+                # vector in the uv space along u-axis (direction==x) or v-axis (direction==y)
+                vec = endU-origin if direction==x else endV-origin
+                
+                lastCutValue = 0
+                for cut in cuts:
+                    cutValue = cut[0]
+                    shape = cut[1]
+                    loops = shape.face.loops
+                    if direction == x:
+                        loops[0][uv_layer].uv = origin + lastCutValue*vec
+                        loops[1][uv_layer].uv = origin + cutValue*vec
+                        loops[2][uv_layer].uv = endV + cutValue*vec
+                        loops[3][uv_layer].uv = endV + lastCutValue*vec
+                    else:
+                        loops[0][uv_layer].uv = origin + lastCutValue*vec
+                        loops[1][uv_layer].uv = endU + lastCutValue*vec
+                        loops[2][uv_layer].uv = endU + cutValue*vec
+                        loops[3][uv_layer].uv = origin + cutValue*vec
+                    # inherit the material_index
+                    shape.face.material_index = materialIndex
+                    shape.addUVlayer(layer)
+                    lastCutValue = cutValue
+            # set preview texture for each newly cut shape
+            for cut in cuts:
+                cut[1].face[bm.faces.layers.tex.active].image = blenderTexture.image
         return cuts
     
-    def createSplitShape(self, bm, verts):
+    def createSplitShape(self, verts):
+        bm = context.bm
         face = bm.faces.new(verts)
-        return Rectangle(face.loops[0])
-        
+        return Rectangle(face.loops[0])    
 
 
 class Shape3d:

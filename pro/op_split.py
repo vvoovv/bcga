@@ -92,13 +92,14 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 			else:
 				lastCutValue = assignCut(cuts, part, multiplier, lastCutValue)
 		# finished!
+		
 		# printing cut sizes
-		_cuts = [cut[0] for cut in cuts]
-		_lastCut = 0
-		for i,_cut in enumerate(_cuts):
-			cutSize = scopeSise*(_cuts[i]-_lastCut)
-			_lastCut = _cuts[i]
-			_cuts[i] = cutSize
+		#_cuts = [cut[0] for cut in cuts]
+		#_lastCut = 0
+		#for i,_cut in enumerate(_cuts):
+		#	cutSize = scopeSise*(_cuts[i]-_lastCut)
+		#	_lastCut = _cuts[i]
+		#	_cuts[i] = cutSize
 		#print(_cuts)
 		return cuts
 
@@ -108,5 +109,6 @@ def assignCut(cuts, part, multiplier, lastCutValue):
 		cutSize = cutSize*multiplier if multiplier>0 else 0
 	if cutSize>0:
 		lastCutValue += cutSize
-		cuts.append([lastCutValue, part])
+		# the element of the list (lastCutValue, 0, part) with index 1 is reserved for the related shape to be created later
+		cuts.append([lastCutValue, None, part])
 	return lastCutValue
