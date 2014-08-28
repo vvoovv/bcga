@@ -111,6 +111,55 @@ class Shape2d:
     
     def clearUVlayers(self):
         self.uvLayers.clear()
+    
+    def setUV(self, layer, width, height):
+        """
+        Assigns uv-coordinates to the shape for the specified uv-layer
+        
+        Args:
+          layer: uv-layer as a string
+          width: texture width in the units of global coordinate system
+          height: texture height in the units of global coordinate sytem
+        """
+        uvLayer = context.bm.loops.layers.uv[layer]
+        # getting the transformation matrix from the global coordinate system to the shape coordinate system
+        matrix = self.getMatrix()
+        firstLoop = self.firstLoop
+        
+        if width==0 or height==0:
+            # in this case width and height are taken from the shape size
+            width, height = self.size()
+        # iterate through all loops of the face
+        loop = firstLoop
+        while True:
+            uv = (matrix*loop.vert.co)[:2]
+            # assign uv
+            loop[uvLayer].uv = (uv[0]/width, uv[1]/height)
+            loop = loop.link_loop_next
+            if loop == firstLoop:
+                break
+    
+    def size(self):
+        """
+        Returns the size of the shape bbox in the shape coordinate system
+        """
+        # getting the transformation matrix from the global coordinate system to the shape coordinate system
+        matrix = self.getMatrix()
+        firstLoop = self.firstLoop
+        # a list of u-coordinates
+        uCoords = []
+        # a list of v-coordinates
+        vCoords = []
+        # iterate through all loops of the face
+        loop = firstLoop
+        while True:
+            uv = matrix*loop.vert.co
+            uCoords.append(uv[0])
+            vCoords.append(uv[1])
+            loop = loop.link_loop_next
+            if loop == firstLoop:
+                break
+        return (max(uCoords)-min(uCoords), max(vCoords)-min(vCoords))
 
 
 class Rectangle(Shape2d):
@@ -167,8 +216,9 @@ class Rectangle(Shape2d):
         
         context.facesForRemoval.append(self.face)
         
+        materialIndex = self.face.material_index
+        
         if len(self.uvLayers)>0:
-            materialIndex = self.face.material_index
             # blenderTexture is needed to set preview texture
             blenderTexture = bpy.context.object.data.materials[materialIndex].texture_slots[0].texture
             # Assign uv coordinates for each uvLayer and for each newly cut shape
@@ -200,19 +250,51 @@ class Rectangle(Shape2d):
                         loops[1][uv_layer].uv = endU + lastCutValue*vec
                         loops[2][uv_layer].uv = endU + cutValue*vec
                         loops[3][uv_layer].uv = origin + cutValue*vec
-                    # inherit the material_index
-                    shape.face.material_index = materialIndex
                     shape.addUVlayer(layer)
                     lastCutValue = cutValue
             # set preview texture for each newly cut shape
             for cut in cuts:
                 cut[1].face[bm.faces.layers.tex.active].image = blenderTexture.image
+        
+        # finally, inherit the material_index from the parent shape
+        for cut in cuts:
+            cut[1].face.material_index = materialIndex
         return cuts
     
     def createSplitShape(self, verts):
         bm = context.bm
         face = bm.faces.new(verts)
-        return Rectangle(face.loops[0])    
+        return Rectangle(face.loops[0])
+    
+    def setUV(self, layer, width, height):
+        """
+        Overloads Shape2d.setUV
+        """
+        uvLayer = context.bm.loops.layers.uv[layer]
+        loops = self.face.loops
+        if width==0 or height==0:
+            # treat the special case
+            loops[0][uvLayer].uv = (0, 0)
+            loops[1][uvLayer].uv = (1, 0)
+            loops[2][uvLayer].uv = (1, 1)
+            loops[3][uvLayer].uv = (0, 1)
+        else:
+            size = self.size()
+            width = size[0]/width
+            height = size[1]/height
+            loops[0][uvLayer].uv = (0, 0)
+            loops[1][uvLayer].uv = (width, 0)
+            loops[2][uvLayer].uv = (width, height)
+            loops[3][uvLayer].uv = (0, height)
+    
+    def size(self):
+        """
+        Overloads Shape2d.size
+        """
+        firstLoop = self.firstLoop
+        width = (getEndVertex(firstLoop).co - self.origin).length
+        height = (self.origin - firstLoop.link_loop_prev.vert.co).length
+        return (width, height)
 
 
 class Shape3d:

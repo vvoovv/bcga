@@ -19,22 +19,10 @@ class Texture(Operator):
     def execute(self):
         shape = context.getState().shape
         bm = context.bm
-        uv_layer = bm.loops.layers.uv[self.layer]
         if self.path=="" and self.width==0 and self.height==0:
             pass
         else:
-            # getting the transformation matrix from the global coordinate system to the shape coordinate system
-            matrix = shape.getMatrix()
-            firstLoop = shape.firstLoop
-            # iterate through all loops of the face
-            loop = firstLoop
-            while True:
-                uv = (matrix*loop.vert.co)[:2]
-                # assign uv
-                loop[uv_layer].uv = (uv[0]/self.width, uv[1]/self.height)
-                loop = loop.link_loop_next
-                if loop == firstLoop:
-                    break
+            shape.setUV(self.layer, self.width, self.height)
             # now deal with the related material
             materialCache = context.materialCache
             path = self.path
