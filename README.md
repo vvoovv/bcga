@@ -14,6 +14,6 @@ The basic concepts of prokitektura are explained in the [tutorial](https://githu
 
 Recent news from August, 29. I've just implemented textures support:
 
-![](https://raw.githubusercontent.com/wiki/vvoovv/prokitektura-blender/images/simple01_01.png)
+![](https://raw.githubusercontent.com/wiki/vvoovv/prokitektura-blender/images/texture_support_implemented.png)
 
 The [tutorial](https://github.com/vvoovv/prokitektura-blender/wiki/Tutorial) and the sample rule set will be updated in the coming days.
