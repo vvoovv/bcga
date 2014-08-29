@@ -3,7 +3,7 @@ from pro import context
 from pro import x, y, z
 from pro import front, back, left, right, top, bottom, side, all
 from pro.op_split import calculateSplit
-from .utils import rotation_zNormal_xHorizontal, getEndVertex, verticalNormalThreshold, zAxis
+from .util import rotation_zNormal_xHorizontal, getEndVertex, verticalNormalThreshold, zAxis
 
 # normal threshold for the Shape3d.comp method to classify if the face is horizontal or vertical
 horizontalFaceThreshold = 0.70711 # math.sqrt(0.5)

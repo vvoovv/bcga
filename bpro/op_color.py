@@ -4,17 +4,16 @@ from pro import context
 
 class Color(pro.op_color.Color):
 	def execute(self):
-		materialCache = context.materialCache
+		materialRegistry = context.materialRegistry
 		colorHex = self.colorHex
-		if colorHex in materialCache:
-			materialIndex = materialCache[colorHex]
+		material = materialRegistry.getMaterial(colorHex)
+		if material:
+			materialIndex = materialRegistry.getMaterialIndex(colorHex)
 		else:
-			materialIndex = len(bpy.context.object.data.materials)
 			material = bpy.data.materials.new(colorHex)
 			material.diffuse_color = self.color
-			# remember the color for the future use
-			materialCache[colorHex] = materialIndex
-			bpy.context.object.data.materials.append(material)
+			materialRegistry.setMaterial(colorHex, material)
+			materialIndex = materialRegistry.getMaterialIndex(colorHex)
 		# assign material to the bmesh face
 		shape = context.getState().shape
 		shape.clearUVlayers()

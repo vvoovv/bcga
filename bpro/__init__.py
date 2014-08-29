@@ -3,7 +3,9 @@ import bpy, bmesh
 
 from pro import context
 
-from bpro.op_decompose import Decompose
+from .material import MaterialRegistry
+
+from .op_decompose import Decompose
 from .op_split import Split
 from .op_extrude import Extrude
 from .op_color import Color
@@ -37,8 +39,8 @@ def apply(ruleFile, startRule="Lot"):
 	context.bm = bmesh.from_edit_mesh(mesh)
 	# list of unused faces for removal
 	context.facesForRemoval = []
-	# a dict to cache Blender material for each color
-	context.materialCache = {}
+	# set up the material registry
+	context.materialRegistry = MaterialRegistry()
 	# initialize the context
 	context.init(getInitialShape(context.bm))
 	
