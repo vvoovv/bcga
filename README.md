@@ -12,4 +12,8 @@ An example set of prokitektura rules can be found [here](https://github.com/vvoo
 
 The basic concepts of prokitektura are explained in the [tutorial](https://github.com/vvoovv/prokitektura-blender/wiki/Tutorial).
 
-Currently I am working on textures support.
+Recent news from August, 29. I've just implemented textures support:
+
+![](https://raw.githubusercontent.com/wiki/vvoovv/prokitektura-blender/images/simple01_01.png)
+
+The [tutorial](https://github.com/vvoovv/prokitektura-blender/wiki/Tutorial) and the sample rule set will be updated in the coming days.
