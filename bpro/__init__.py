@@ -25,6 +25,9 @@ def buildFactory():
 	factory["Texture"] = Texture
 
 def apply(ruleFile, startRule="Lot"):
+	# apply all transformations to the active Blender object
+	bpy.ops.object.mode_set(mode="OBJECT")
+	bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 	# setting the path to the rule for context
 	context.ruleFile = ruleFile if isinstance(ruleFile, str) else ruleFile.__file__
 	params = None
@@ -33,7 +36,6 @@ def apply(ruleFile, startRule="Lot"):
 	# TODO: a separate pass through the rules is needed to find out how many uv layers are needed 
 	mesh.uv_textures.new(Texture.defaultLayer)
 	# all operations will be done in the EDIT mode
-	enableEditMode = bpy.context.mode != "EDIT_MESH"
 	bpy.ops.object.mode_set(mode="EDIT")
 	# setting bmesh instance
 	context.bm = bmesh.from_edit_mesh(mesh)
@@ -72,9 +74,8 @@ def apply(ruleFile, startRule="Lot"):
 	bpy.ops.mesh.select_all(action="DESELECT")
 	# update mesh
 	bmesh.update_edit_mesh(mesh)
-	if enableEditMode:
-		# returning to the OBJECT mode
-		bpy.ops.object.mode_set(mode="OBJECT")
+	# set OBJECT mode
+	bpy.ops.object.mode_set(mode="OBJECT")
 	# cleaning context from blender specific members
 	delattr(context, "bm")
 	delattr(context, "facesForRemoval")
