@@ -1,5 +1,4 @@
-import math
-from .base import ComplexOperator, OperatorDef
+from .base import ComplexOperator
 from .base import context
 
 def split(direction):
@@ -14,7 +13,7 @@ class Split(ComplexOperator):
 class SplitDef:
 	def __init__(self, parts, repeat):
 		self.parts = []
-		for i, part in enumerate(parts):
+		for part in parts:
 			# if isinstance(part, tuple), then part is a repeat clause
 			part = SplitDef(part, True) if isinstance(part, tuple) else part
 			self.parts.append(part)
@@ -70,9 +69,15 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 				childRepeat = splitDef.childRepeat
 				# number of repetions
 				numRepetitions = (1-floatingSize-fixedSize)/(childRepeat.floatingSize+childRepeat.fixedSize)
-				numRepetitions = round(numRepetitions)
+				if numRepetitions<=0:
+					numRepetitions = 0
+				elif numRepetitions<1:
+					numRepetitions = 1
+				else:
+					numRepetitions = round(numRepetitions)
 				# calculating multiplier for floating
-				multiplier = (1-fixedSize-numRepetitions*childRepeat.fixedSize)/(floatingSize+numRepetitions*childRepeat.floatingSize)
+				if numRepetitions>0 or floatingSize>0:
+					multiplier = (1-fixedSize-numRepetitions*childRepeat.fixedSize)/(floatingSize+numRepetitions*childRepeat.floatingSize)
 		elif floatingSize>0:
 			# no repeats but there are floating
 			multiplier = (1-fixedSize)/floatingSize
@@ -91,6 +96,8 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 						lastCutValue = assignCut(cuts, _part, multiplier, lastCutValue)
 			else:
 				lastCutValue = assignCut(cuts, part, multiplier, lastCutValue)
+				if lastCutValue == 1:
+					break
 		# finished!
 		
 		# printing cut sizes
@@ -109,6 +116,8 @@ def assignCut(cuts, part, multiplier, lastCutValue):
 		cutSize = cutSize*multiplier if multiplier>0 else 0
 	if cutSize>0:
 		lastCutValue += cutSize
+		if lastCutValue>1:
+			lastCutValue = 1
 		# the element of the list (lastCutValue, 0, part) with index 1 is reserved for the related shape to be created later
 		cuts.append([lastCutValue, None, part])
 	return lastCutValue

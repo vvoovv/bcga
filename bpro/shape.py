@@ -180,6 +180,11 @@ class Rectangle(Shape2d):
         v = referenceLoop.edge.verts
         cuts = calculateSplit(parts, (v[1].co-v[0].co).length)
         
+        # a degenerate case, i.e. no cut is needed
+        if len(cuts)==1:
+            # return immediately
+            return cuts
+        
         bm = context.bm
         
         # the loop opposite to referenceLoop
