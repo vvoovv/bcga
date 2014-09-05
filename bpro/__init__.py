@@ -38,7 +38,8 @@ def apply(ruleFile, startRule="Lot"):
 	# all operations will be done in the EDIT mode
 	bpy.ops.object.mode_set(mode="EDIT")
 	# setting bmesh instance
-	context.bm = bmesh.from_edit_mesh(mesh)
+	bm = bmesh.from_edit_mesh(mesh)
+	context.bm = bm
 	# list of unused faces for removal
 	context.facesForRemoval = []
 	# set up the material registry
@@ -66,12 +67,9 @@ def apply(ruleFile, startRule="Lot"):
 	getattr(module, startRule)()
 	
 	# remove unused faces from context.facesForRemoval
-	for face in context.facesForRemoval:
-		context.bm.faces.remove(face)
+	bmesh.ops.delete(bm, geom=context.facesForRemoval, context=5)
 	# remove doubles
-	bpy.ops.mesh.select_all(action="SELECT")
-	bpy.ops.mesh.remove_doubles()
-	bpy.ops.mesh.select_all(action="DESELECT")
+	bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
 	# update mesh
 	bmesh.update_edit_mesh(mesh)
 	# set OBJECT mode
