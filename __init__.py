@@ -2,7 +2,7 @@ bl_info = {
 	"name": "Prokitektura",
 	"author": "Vladimir Elistratov <vladimir.elistratov@gmail.com>",
 	"version": (0, 0, 0),
-	"blender": (2, 7, 0),
+	"blender": (2, 7, 1),
 	"location": "View3D > Tool Shelf",
 	"description": "Prokitektura implementation for Blender",
 	"warning": "",
@@ -12,15 +12,7 @@ bl_info = {
 	"category": "Prokitektura",
 }
 
-import sys, os
-for path in sys.path:
-	if "bpro" in path:
-		path = None
-		break
-if path:
-	# we need to add path to bpro package
-	sys.path.append(os.path.dirname(__file__))
-
+import os
 import bpy
 import bpro
 
