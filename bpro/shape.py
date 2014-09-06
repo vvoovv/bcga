@@ -34,7 +34,7 @@ class Shape2d:
         self.matrix = None
         self.uvLayers = set()
     
-    def extrude(self, depth):
+    def extrude(self, depth, keepOriginal):
         bm = context.bm
         # store the reference to the original face
         originalFace = self.face
@@ -63,7 +63,12 @@ class Shape2d:
         
         # now we have a 3D shape
         # build a list of 2D shapes (faces) that costitute the 3D shape
-        shapes = [self, Shape2d(oppositeLoop.link_loops[0])]
+        shapes = []
+        if keepOriginal:
+            shapes.append(self)
+        else:
+            context.facesForRemoval.append(self.face)
+        shapes.append(Shape2d(oppositeLoop.link_loops[0]))
         firstLoop = loop
         if extrudedFace.normal[2]>verticalNormalThreshold:
             # first, consider the special case for the horizontal extrudedFace
@@ -160,6 +165,9 @@ class Shape2d:
             if loop == firstLoop:
                 break
         return (max(uCoords)-min(uCoords), max(vCoords)-min(vCoords))
+    
+    def delete(self):
+        context.facesForRemoval.append(self.face)
 
 
 class Rectangle(Shape2d):
@@ -319,7 +327,7 @@ class Shape3d:
         # rotation matrix is calculated on demand
         self.rotationMatrix = None
     
-    def comp(self, parts):
+    def decompose(self, parts):
         """
         Returns a dictionary with a comp-selector as the key and a list of 2D-shapes as the related value
         """
@@ -358,3 +366,7 @@ class Shape3d:
         if not self.rotationMatrix:
             self.rotationMatrix = rotation_zNormal_xHorizontal(self.firstLoop, zAxis)
         return self.rotationMatrix
+    
+    def delete(self):
+        for shape in self.shapes:
+            shape.delete()

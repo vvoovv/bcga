@@ -2,9 +2,9 @@ import pro
 from pro import context
 
 class Split(pro.op_split.Split):
+	
 	def execute(self):
-		state = context.getState()
-		shape = state.shape
+		shape = context.getState().shape
 		
 		# Calculate cuts.
 		# cuts is a list of tuples (cutShape, ruleForTheCutShape)

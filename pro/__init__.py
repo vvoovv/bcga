@@ -5,10 +5,9 @@ from pro.op_decompose import f, e, v
 from pro.op_decompose import front, back, left, right, top, bottom, side, all
 
 from .op_extrude import extrude
-
 from .op_color import color
-
 from .op_texture import texture
+from .op_delete import delete
 
 from .base import param, random
 from .base import context
@@ -32,7 +31,7 @@ def rule(operator):
 def repeat(*args):
 	return args
 
-def flt(value):
+def flt(value=1):
 	return {'flt':value}
 
 def rel(value):

@@ -10,6 +10,7 @@ from .op_split import Split
 from .op_extrude import Extrude
 from .op_color import Color
 from .op_texture import Texture
+from .op_delete import Delete
 
 from pro.base import Param
 
@@ -23,6 +24,7 @@ def buildFactory():
 	factory["Extrude"] = Extrude
 	factory["Color"] = Color
 	factory["Texture"] = Texture
+	factory["Delete"] = Delete
 
 def apply(ruleFile, startRule="Lot"):
 	# apply all transformations to the active Blender object
