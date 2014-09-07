@@ -44,22 +44,23 @@ class Shape2d:
         for extrudedFace in geom["geom"]:
             if isinstance(extrudedFace, bmesh.types.BMFace):
                 break
-        # get extruded vertices
-        #verts = [v for v in geom["geom"] if isinstance(v, bmesh.types.BMVert)]
         # perform translation along the extrudedFace normal
         bmesh.ops.translate(bm, verts=extrudedFace.verts, vec=depth*extrudedFace.normal)
         
-        # find a face connecting originalFace and extrudedFace, that contains the first edge
-        # the first edge:
-        edge = self.firstLoop.edge
+        # Find a face connecting originalFace and extrudedFace, that contains the original first edge.
+        # The normal for the original face has been reversed, so self.firstLoop doesn't contain
+        # the original edge anymore 
+        # The original first edge:
+        edge = self.firstLoop.link_loop_prev.edge
         # loops connected to the first esge
         loops = edge.link_loops
         # find the loop that belong to the face we are looking for (the face connects originalFace and extrudedFace)
         for loop in loops:
             oppositeLoop = loop.link_loop_next.link_loop_next
-            oppositeEdgeFaces = oppositeLoop.edge.link_faces
-            if oppositeEdgeFaces[0]==extrudedFace or oppositeEdgeFaces[1]==extrudedFace:
+            _loops = oppositeLoop.link_loops
+            if len(_loops)==1 and _loops[0].face==extrudedFace:
                 break
+        extrudedFirstEdge = _loops[0]
         
         # now we have a 3D shape
         # build a list of 2D shapes (faces) that costitute the 3D shape
@@ -69,20 +70,39 @@ class Shape2d:
         else:
             context.facesForRemoval.append(self.face)
         shapes.append(Shape2d(oppositeLoop.link_loops[0]))
-        firstLoop = loop
-        if extrudedFace.normal[2]>verticalNormalThreshold:
-            # first, consider the special case for the horizontal extrudedFace
-            while True:
+        startLoop = loop
+        while True:
+            if extrudedFace.normal[2]>verticalNormalThreshold:
+                # first, consider the special case for the horizontal extrudedFace
                 shapes.append(Rectangle(loop))
-                # proceed to the next face connecting originalFace and extrudedFace
-                loop = loop.link_loop_next.link_loops[0].link_loop_next
-                if loop == firstLoop:
-                    break
-        else:
-            # now, consider the general case
-            pass
+            else:
+                # Find which edge of the edgess along the direction of extrusion
+                # has the lowest vertex
+                # the first edge along the direction of extrusion
+                loop1 = loop.link_loop_next
+                loop2 = loop1.link_loop_next
+                z1 = min(loop1.vert.co[2], loop2.vert.co[2])
+                # the second edge along the direction of extrusion
+                loop1 = loop.link_loop_prev
+                loop2 = loop1.link_loop_prev
+                z2 = min(loop1.vert.co[2], loop2.vert.co[2])
+                # Choose the loop belonging to the edge with the lowest vertex
+                # as the first loop for the rectangle to be created
+                # If z1==z2 (i.e. the rectangle is horizontal)
+                # choose the opposite loop as the first loop for the rectangle to be created
+                if z1==z2:
+                    _firstLoop = loop.link_loop_next.link_loop_next
+                elif z1<z2:
+                    _firstLoop = loop.link_loop_next
+                else:
+                    _firstLoop = loop.link_loop_prev.link_loop_prev
+                shapes.append(Rectangle(_firstLoop))
+            # proceed to the next face connecting originalFace and extrudedFace
+            loop = loop.link_loop_next.link_loops[0].link_loop_next
+            if loop == startLoop:
+                break
         
-        return Shape3d(shapes, self.firstLoop)
+        return Shape3d(shapes, extrudedFirstEdge)
 
     def getMatrix(self):
         """
@@ -343,9 +363,9 @@ class Shape3d:
                 isVertical = False
             else:
                 if abs(normal[0]) > abs(normal[1]):
-                    shapeType = front if normal[0]>0 else back
+                    shapeType = right if normal[0]>0 else left
                 else:
-                    shapeType = right if normal[1]>0 else left
+                    shapeType = front if normal[1]<0 else back
                 isVertical = True
             
             if not shapeType in parts:

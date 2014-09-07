@@ -1,4 +1,5 @@
 from pro.base import Operator
+from pro import context
 
 class Delete(Operator):
     
