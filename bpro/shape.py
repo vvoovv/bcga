@@ -102,7 +102,7 @@ class Shape2d:
             if loop == startLoop:
                 break
         
-        return Shape3d(shapes, extrudedFirstEdge)
+        return Shape3d(shapes, extrudedFirstEdge, niche=True if depth<0 else False)
 
     def getMatrix(self):
         """
@@ -338,7 +338,11 @@ class Shape3d:
     x-axis of the 3D-shape coordinate system is oriented along the firstLoop.
     """
     
-    def __init__(self, shapes, firstLoop):
+    def __init__(self, shapes, firstLoop, **kwargs):
+        self.niche = False
+        # apply kwargs
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
         # set 2D shapes (faces) that constitute the 3D-shape
         self.shapes = shapes
         self.firstLoop = firstLoop
@@ -359,11 +363,17 @@ class Shape3d:
             # classify the 2D-shape
             if abs(normal[2]) > horizontalFaceThreshold:
                 # the 2D-shape is horizontal
-                shapeType = top if normal[2]>0 else bottom
+                if self.niche:
+                    shapeType = top if normal[2]<0 else bottom
+                else:
+                    shapeType = top if normal[2]>0 else bottom
                 isVertical = False
             else:
                 if abs(normal[0]) > abs(normal[1]):
-                    shapeType = right if normal[0]>0 else left
+                    if self.niche:
+                        shapeType = right if normal[0]<0 else left
+                    else:
+                        shapeType = right if normal[0]>0 else left
                 else:
                     shapeType = front if normal[1]<0 else back
                 isVertical = True
