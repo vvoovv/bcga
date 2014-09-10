@@ -32,9 +32,15 @@ class Shape2d:
         self.origin = firstLoop.vert.co
         # the transformation matrix from the global coordinate system to the shape coordinate system
         self.matrix = None
-        self.uvLayers = set()
+        # a dict uvLayer -> instance of bpro.op_texture.Texture
+        self.uvLayers = {}
     
-    def extrude(self, depth, keepOriginal):
+    def extrude(self, extrude):
+        """
+        Args:
+            extrude (pro.op_extrude.Extrude): Instance of pro.op_extrude.Extrude
+        """
+        depth = extrude.depth
         bm = context.bm
         # store the reference to the original face
         originalFace = self.face
@@ -65,9 +71,12 @@ class Shape2d:
         # now we have a 3D shape
         # build a list of 2D shapes (faces) that costitute the 3D shape
         shapes = []
-        if keepOriginal:
+        if extrude.keepOriginal:
             shapes.append(self)
+            # index of the first side shape
+            sideIndex = 2
         else:
+            sideIndex = 1
             context.facesForRemoval.append(self.face)
         shapes.append(Shape2d(oppositeLoop.link_loops[0]))
         startLoop = loop
@@ -102,6 +111,26 @@ class Shape2d:
             if loop == startLoop:
                 break
         
+        # Inherit material from the original shape
+        # depending on settings (inheritMaterialAll, inheritMaterialSides, inheritMaterialExtruded).
+        # The extruded face in Blender inherits uv-coordinates and material of the original face automatically.
+        # So there is no need to process inheritMaterialExtruded
+        if extrude.inheritMaterialSides or extrude.inheritMaterialAll:
+            numShapes = len(shapes)
+            if len(self.uvLayers)>0:
+                # inherit uv-coordinates
+                for i in range(sideIndex, numShapes):
+                    shape = shapes[i]
+                    for layer in self.uvLayers:
+                        tex = self.uvLayers[layer]
+                        shape.setUV(layer, tex)
+                        shape.addUVlayer(layer, tex)
+            # inherit material_index
+            for i in range(sideIndex, numShapes):
+                shapes[i].face.material_index = self.face.material_index
+
+        # perform some cleanup
+        self.clearUVlayers()
         return Shape3d(shapes, extrudedFirstEdge, niche=True if depth<0 else False)
 
     def getMatrix(self):
@@ -131,21 +160,31 @@ class Shape2d:
         normal.normalize()
         return normal
     
-    def addUVlayer(self, layer):
-        self.uvLayers.add(layer)
+    def addUVlayer(self, layer, tex):
+        """
+        Adds a new antry to self.uvLayers
+        
+        Args:
+            layer (str): UV-layer, a key for self.uvLayers
+            tex (bpro.op_texture.Texture): Instance of bpro.op_texture.Texture
+        """
+        self.uvLayers[layer] = tex
     
     def clearUVlayers(self):
         self.uvLayers.clear()
     
-    def setUV(self, layer, width, height):
+    def setUV(self, layer, tex):
         """
         Assigns uv-coordinates to the shape for the specified uv-layer
         
         Args:
-          layer: uv-layer as a string
-          width: texture width in the units of global coordinate system
-          height: texture height in the units of global coordinate sytem
+            layer (str): UV-layer
+            tex (bpro.op_texture.Texture): Instance of bpro.op_texture.Texture
         """
+        # texture width in the units of global coordinate system
+        width = tex.width
+        # texture height in the units of global coordinate sytem
+        height = tex.height
         uvLayer = context.bm.loops.layers.uv[layer]
         # getting the transformation matrix from the global coordinate system to the shape coordinate system
         matrix = self.getMatrix()
@@ -283,7 +322,7 @@ class Rectangle(Shape2d):
                         loops[1][uv_layer].uv = endU + lastCutValue*vec
                         loops[2][uv_layer].uv = endU + cutValue*vec
                         loops[3][uv_layer].uv = origin + cutValue*vec
-                    shape.addUVlayer(layer)
+                    shape.addUVlayer(layer, self.uvLayers[layer])
                     lastCutValue = cutValue
             # set preview texture for each newly cut shape
             for cut in cuts:
@@ -292,6 +331,8 @@ class Rectangle(Shape2d):
         # finally, inherit the material_index from the parent shape
         for cut in cuts:
             cut[1].face.material_index = materialIndex
+        # perform some cleanup
+        self.clearUVlayers()
         return cuts
     
     def createSplitShape(self, verts):
@@ -299,10 +340,14 @@ class Rectangle(Shape2d):
         face = bm.faces.new(verts)
         return Rectangle(face.loops[0])
     
-    def setUV(self, layer, width, height):
+    def setUV(self, layer, tex):
         """
         Overloads Shape2d.setUV
         """
+        # texture width in the units of global coordinate system
+        width = tex.width
+        # texture height in the units of global coordinate sytem
+        height = tex.height
         uvLayer = context.bm.loops.layers.uv[layer]
         loops = self.face.loops
         if width==0 or height==0:
@@ -339,6 +384,16 @@ class Shape3d:
     """
     
     def __init__(self, shapes, firstLoop, **kwargs):
+        """
+        Sets a texture for the 2D-shape
+        
+        Args:
+            shapes (list): List of 2D shapes
+            firstLoop (BMLoop): The first loop
+        
+        Kwargs:
+            niche (bool): Does the 3D shapes constitues a niche, e.g. as a result of extrude operation with negative depth
+        """
         self.niche = False
         # apply kwargs
         for k in kwargs:

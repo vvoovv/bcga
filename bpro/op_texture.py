@@ -22,7 +22,7 @@ class Texture(Operator):
         if self.path=="" and self.width==0 and self.height==0:
             pass
         else:
-            shape.setUV(self.layer, self.width, self.height)
+            shape.setUV(self.layer, self)
             # now deal with the related material
             materialRegistry = context.materialRegistry
             path = self.path
@@ -45,6 +45,6 @@ class Texture(Operator):
                 materialIndex = materialRegistry.getMaterialIndex(name)
                 
             shape.face.material_index = materialIndex
-            shape.addUVlayer(self.layer)
+            shape.addUVlayer(self.layer, self)
             # set preview texture
             shape.face[bm.faces.layers.tex[self.layer]].image = blenderTexture.image
