@@ -85,14 +85,14 @@ class Shape2d:
                 # first, consider the special case for the horizontal extrudedFace
                 shapes.append(Rectangle(loop))
             else:
-                # Find which edge of the edgess along the direction of extrusion
+                # Find which edge of the edges along the direction of extrusion
                 # has the lowest vertex
                 # the first edge along the direction of extrusion
                 loop1 = loop.link_loop_next
                 loop2 = loop1.link_loop_next
                 z1 = min(loop1.vert.co[2], loop2.vert.co[2])
                 # the second edge along the direction of extrusion
-                loop1 = loop.link_loop_prev
+                loop1 = loop
                 loop2 = loop1.link_loop_prev
                 z2 = min(loop1.vert.co[2], loop2.vert.co[2])
                 # Choose the loop belonging to the edge with the lowest vertex
@@ -100,11 +100,11 @@ class Shape2d:
                 # If z1==z2 (i.e. the rectangle is horizontal)
                 # choose the opposite loop as the first loop for the rectangle to be created
                 if z1==z2:
-                    _firstLoop = loop.link_loop_next.link_loop_next
+                    _firstLoop = loop
                 elif z1<z2:
                     _firstLoop = loop.link_loop_next
                 else:
-                    _firstLoop = loop.link_loop_prev.link_loop_prev
+                    _firstLoop = loop.link_loop_prev
                 shapes.append(Rectangle(_firstLoop))
             # proceed to the next face connecting originalFace and extrudedFace
             loop = loop.link_loop_next.link_loops[0].link_loop_next
@@ -115,9 +115,12 @@ class Shape2d:
         # depending on settings (inheritMaterialAll, inheritMaterialSides, inheritMaterialExtruded).
         # The extruded face in Blender inherits uv-coordinates and material of the original face automatically.
         # So there is no need to process inheritMaterialExtruded
+        materialIndex = self.face.material_index
         if extrude.inheritMaterialSides or extrude.inheritMaterialAll:
             numShapes = len(shapes)
             if len(self.uvLayers)>0:
+                # blenderTexture is needed to set preview texture
+                blenderTexture = bpy.context.object.data.materials[materialIndex].texture_slots[0].texture
                 # inherit uv-coordinates
                 for i in range(sideIndex, numShapes):
                     shape = shapes[i]
@@ -125,9 +128,11 @@ class Shape2d:
                         tex = self.uvLayers[layer]
                         shape.setUV(layer, tex)
                         shape.addUVlayer(layer, tex)
+                    # set preview texture for each newly created shape
+                    shape.face[bm.faces.layers.tex.active].image = blenderTexture.image
             # inherit material_index
             for i in range(sideIndex, numShapes):
-                shapes[i].face.material_index = self.face.material_index
+                shapes[i].face.material_index = materialIndex
 
         # perform some cleanup
         self.clearUVlayers()
@@ -349,21 +354,27 @@ class Rectangle(Shape2d):
         # texture height in the units of global coordinate sytem
         height = tex.height
         uvLayer = context.bm.loops.layers.uv[layer]
-        loops = self.face.loops
+        loop = self.firstLoop
         if width==0 or height==0:
             # treat the special case
-            loops[0][uvLayer].uv = (0, 0)
-            loops[1][uvLayer].uv = (1, 0)
-            loops[2][uvLayer].uv = (1, 1)
-            loops[3][uvLayer].uv = (0, 1)
+            loop[uvLayer].uv = (0, 0)
+            loop = loop.link_loop_next
+            loop[uvLayer].uv = (1, 0)
+            loop = loop.link_loop_next
+            loop[uvLayer].uv = (1, 1)
+            loop = loop.link_loop_next
+            loop[uvLayer].uv = (0, 1)
         else:
             size = self.size()
             width = size[0]/width
             height = size[1]/height
-            loops[0][uvLayer].uv = (0, 0)
-            loops[1][uvLayer].uv = (width, 0)
-            loops[2][uvLayer].uv = (width, height)
-            loops[3][uvLayer].uv = (0, height)
+            loop[uvLayer].uv = (0, 0)
+            loop = loop.link_loop_next
+            loop[uvLayer].uv = (width, 0)
+            loop = loop.link_loop_next
+            loop[uvLayer].uv = (width, height)
+            loop = loop.link_loop_next
+            loop[uvLayer].uv = (0, height)
     
     def size(self):
         """
