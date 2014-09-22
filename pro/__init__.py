@@ -9,6 +9,7 @@ from .op_color import color
 from .op_texture import texture
 from .op_delete import delete
 
+from .base import flt, rel
 from .base import param, random
 from .base import context
 from .base import Rule
@@ -30,12 +31,6 @@ def rule(operator):
 
 def repeat(*args):
 	return args
-
-def flt(value=1):
-	return {'flt':value}
-
-def rel(value):
-	return {'rel':value}
 
 def size(sizeX, sizeY, sizeZ):
 	pass

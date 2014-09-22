@@ -1,12 +1,40 @@
 import random as randomlib
 
+def flt(value=1):
+	return Modifier(flt=value)
+
+def rel(value):
+	return Modifier(rel=value)
+
+
+class Modifier:
+	"""
+	A wrapper for flt(...) and rel(...) modifiers
+	"""
+	def __init__(self, **kwargs):
+		for k in kwargs:
+			# there is only one kwarg!
+			self.modifier = k
+			setattr(self, k, True)
+			self.value = kwargs[k]
+	
+	def execute(self):
+		pass
+			
+
 class Operator:
 	def __init__(self):
 		if context.immediateExecution:
 			self.execute()
 	
 	def __rrshift__(self, value):
-		self.value = value.value if isinstance(value, Param) else value
+		if isinstance(value, Modifier):
+			setattr(self, value.modifier, True)
+			self.value = value.value
+		elif isinstance(value, Param):
+			self.value = value.value
+		else:
+			self.value = value
 		return self
 	
 	def execute(self, *args):

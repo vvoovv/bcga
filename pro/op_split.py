@@ -22,12 +22,23 @@ class SplitDef:
 		self.hasFloating = False
 
 
+class RawValue:
+	"""
+	A wrapper for raw float or integer split value without an operator or a rule.
+	"""
+	def __init__(self, value):
+		self.value = value
+	
+	def execute(self):
+		pass
+
+
 def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 	if not parentSplitDef:
 		splitDef = SplitDef(splitDef, False)
 	fixedSize = 0
 	floatingSize = 0
-	for part in splitDef.parts:
+	for partIndex, part in enumerate(splitDef.parts):
 		if isinstance(part, SplitDef):
 			# only one repeat is allowed!
 			if not splitDef.repeat and not splitDef.childRepeat:
@@ -35,25 +46,26 @@ def calculateSplit(splitDef, scopeSise, parentSplitDef=None):
 				splitDef.childRepeat = part
 			calculateSplit(part, scopeSise, splitDef)
 		else:
+			if isinstance(part, float) or isinstance(part, int):
+				part = RawValue(part)
+				splitDef.parts[partIndex] = part
 			value = part.value
-			if isinstance(value, dict):
-				if "flt" in value:
-					_value = value["flt"]/scopeSise
-					part._value = _value
-					part.flt = True
-					floatingSize += _value
-					if not splitDef.hasFloating:
-						splitDef.hasFloating = True
-					if parentSplitDef and not parentSplitDef.hasFloating:
-						# notify parent splitDef that it has floating
-						parentSplitDef.hasFloating = True
-				elif "rel" in value:
-					fixedSize += value["rel"]
-					part._value = value["rel"]
+			if hasattr(part, "flt"):
+				_value = value/scopeSise
+				part._value = _value
+				floatingSize += _value
+				if not splitDef.hasFloating:
+					splitDef.hasFloating = True
+				if parentSplitDef and not parentSplitDef.hasFloating:
+					# notify parent splitDef that it has floating
+					parentSplitDef.hasFloating = True
+			elif hasattr(part, "rel"):
+				fixedSize += value
+				part._value = value
 			else:
 				_value = value/scopeSise
 				part._value = _value
-				fixedSize += value/scopeSise
+				fixedSize += _value
 	splitDef.fixedSize = fixedSize
 	splitDef.floatingSize = floatingSize
 	
