@@ -1,12 +1,26 @@
 from .base import ComplexOperator
 from .base import context
 
-def split(direction):
-	return context.factory["Split"](direction)
+def split(direction, **kwargs):
+	"""
+	Splits a 2D-shape into a number of shapes. Must be use with accompanying into(...) function.
+	
+	Args:
+		direction: Split direction, currently x or y
+	
+	Kwargs:
+		reverse (bool): Split definitions in the accompanying into(...) functions are processed in the reversed order.
+			The default value is False.
+	"""
+	return context.factory["Split"](direction, **kwargs)
 
 class Split(ComplexOperator):
-	def __init__(self, direction):
+	def __init__(self, direction, **kwargs):
 		self.direction = direction
+		self.reverse = False
+		# apply kwargs
+		for k in kwargs:
+			setattr(self, k, kwargs[k])
 		super().__init__()
 
 

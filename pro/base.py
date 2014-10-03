@@ -164,6 +164,9 @@ class Param:
 	def getValue(self):
 		return self.value
 
+	def execute(self):
+		pass
+
 
 class ParamFloat(Param):
 	def __init__(self, value):
