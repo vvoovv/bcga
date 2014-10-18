@@ -50,17 +50,12 @@ def apply(ruleFile, startRule="Lot"):
 	context.init(getInitialShape(context.bm))
 	
 	if isinstance(ruleFile, str):
-		# remove extension from ruleFile if it was provided
-		ruleFile = os.path.splitext(ruleFile)[0]
-		moduleName = os.path.basename(ruleFile)
-		_file, _pathname, _description = imp.find_module(moduleName, [os.path.dirname(ruleFile)])
-		module = imp.load_module(moduleName, _file, _pathname, _description)
-		_file.close()
+		module = getModule(ruleFile)
 
 		# prepare context internal stuff
 		context.prepare()
 		# params is a list of tuples: (paramName, instanceofParamClass)
-		params = [m for m in inspect.getmembers(module, isParam)]
+		params = getParams(module)
 	else:
 		# ruleFile is actually a module
 		module = ruleFile
@@ -85,5 +80,19 @@ def apply(ruleFile, startRule="Lot"):
 def isParam(member):
 	"""A predicate for the inspect.getmembers call"""
 	return isinstance(member, Param)
+
+def getModule(ruleFile):
+	"""Returns Python module object given a path to the rule file"""
+	# remove extension from ruleFile if it was provided
+	ruleFile = os.path.splitext(ruleFile)[0]
+	moduleName = os.path.basename(ruleFile)
+	_file, _pathname, _description = imp.find_module(moduleName, [os.path.dirname(ruleFile)])
+	module = imp.load_module(moduleName, _file, _pathname, _description)
+	_file.close()
+	return module
+
+def getParams(module):
+	"""Returns a list of tuples: (paramName, instanceofParamClass)"""
+	return [m for m in inspect.getmembers(module, isParam)]
 
 buildFactory()

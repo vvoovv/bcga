@@ -78,7 +78,8 @@ class Shape2d:
         else:
             sideIndex = 1
             context.facesForRemoval.append(self.face)
-        shapes.append(Shape2d(oppositeLoop.link_loops[0]))
+        constructor = type(self)
+        shapes.append(constructor(oppositeLoop.link_loops[0]))
         startLoop = loop
         while True:
             if extrudedFace.normal[2]>verticalNormalThreshold:
