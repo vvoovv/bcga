@@ -105,6 +105,7 @@ class Pro(bpy.types.Operator):
 			# new params arrived, so clean all collections
 			self.collectionFloat.clear()
 			self.collectionColor.clear()
+			paramCounter = 0
 			# for each entry in self.params create a new item in self.collection
 			for param in self.params:
 				param = param[1]
@@ -114,24 +115,32 @@ class Pro(bpy.types.Operator):
 					collectionItem = self.collectionColor.add()
 				collectionItem.value = param.getValue()
 				param.collectionItem = collectionItem
+				paramCounter += 1
+				if paramCounter==8:break
 		return {"FINISHED"}
 	
 	def execute(self, context):
+		paramCounter = 0
 		for param in self.params:
 			param = param[1]
 			param.setValue(getattr(param.collectionItem, "value"))
+			paramCounter += 1
+			if paramCounter==8:break
 		bpro.apply(self.module)
 		return {"FINISHED"}
 	
 	def draw(self, context):
 		layout = self.layout
 		if hasattr(self, "params"):
+			paramCounter = 0
 			# self.params is a list of tuples: (paramName, instanceofParamClass)
 			for param in self.params:
 				paramName = param[0]
 				row = layout.split()
 				row.label(paramName+":")
 				row.prop(param[1].collectionItem, "value")
+				paramCounter += 1
+				if paramCounter==8:break
 
 
 class Bake(bpy.types.Operator):
@@ -140,8 +149,10 @@ class Bake(bpy.types.Operator):
 	bl_options = {"REGISTER", "UNDO"}
 	
 	def execute(self, context):
+		bpy.ops.object.select_all(action="DESELECT")
 		# remember the original object, it will be used for low poly model
 		lowPolyObject = context.object
+		lowPolyObject.select = True
 		bpy.ops.object.duplicate()
 		highPolyObject = context.object
 		# high poly model
@@ -170,7 +181,6 @@ class Bake(bpy.types.Operator):
 				bpy.ops.uv.smart_project()
 				# prepare settings for baking
 				bpy.ops.object.mode_set(mode="OBJECT")
-				bpy.ops.object.select_all(action="DESELECT")
 				highPolyObject.select = True
 				bpy.context.scene.render.bake_type = "TEXTURE"
 				bpy.context.scene.render.use_bake_selected_to_active = True
@@ -182,9 +192,11 @@ class Bake(bpy.types.Operator):
 				# finally perform baking
 				bpy.ops.object.bake_image()
 				# delete the high poly object and its mesh
+				context.scene.objects.active = highPolyObject
 				mesh = highPolyObject.data
 				bpy.ops.object.delete()
 				bpy.data.meshes.remove(mesh)
+				context.scene.objects.active = lowPolyObject
 				# assign the baked texture to the low poly object
 				blenderTexture = bpy.data.textures.new(name, type = "IMAGE")
 				blenderTexture.image = image
