@@ -60,8 +60,12 @@ def apply(ruleFile, startRule="Lot"):
 		# ruleFile is actually a module
 		module = ruleFile
 	
+	# setting the current operator to a dummy one to avoid an exception
+	class dummy:
+		def addChildOperator(self, o): pass
+	context.operator = dummy()
 	# evaluate the rule set
-	getattr(module, startRule)()
+	getattr(module, startRule)().execute()
 	
 	# remove unused faces from context.facesForRemoval
 	bmesh.ops.delete(bm, geom=context.facesForRemoval, context=5)

@@ -24,8 +24,7 @@ class Modifier:
 
 class Operator:
 	def __init__(self):
-		if context.immediateExecution:
-			self.execute()
+		context.operator.addChildOperator(self)
 	
 	def __rrshift__(self, value):
 		if isinstance(value, Modifier):
@@ -45,32 +44,45 @@ class Operator:
 
 
 class Rule(Operator):
+	
 	def __init__(self, operator, args, kwargs):
 		self.operator = operator
 		self.args = args
 		self.kwargs = kwargs
+		# list of child operators
+		self.operators = []
+		super().__init__()
 	
 	def execute(self):
+		# setting the current operator to self
+		context.operator = self
 		self.operator(*self.args, **self.kwargs)
+		self.executeChildOperators()
+
+	def addChildOperator(self, operator):
+		"""Adds child operator"""
+		self.operators.append(operator)
+	
+	def removeChildOperators(self, numOperators):
+		while numOperators:
+			self.operators.pop()
+			numOperators -= 1
+	
+	def executeChildOperators(self):
+		# execute operators inside the body of the current operator
+		for o in self.operators:
+			o.execute()
+		self.operators.clear()
 	
 	def __str__(self):
 		return self.operator.__name__
 
 
 class ComplexOperator(Operator):
-	def __init__(self):
-		self.immediateExecution = context.immediateExecution
-		if context.immediateExecution:
-			# set immediate execution lock
-			context.immediateExecution = False
-
-	def into(self, *args):
-		self.parts = args
-		if self.immediateExecution:
-			# remove immediate execution lock
-			context.immediateExecution = True
-			self.execute()
-		return self
+	def __init__(self, numParts):
+		# remove numParts operators from
+		context.operator.removeChildOperators(numParts) 
+		super().__init__()
 
 
 class OperatorDef:
@@ -109,7 +121,6 @@ class Context:
 		self.factory = {}
 		# stack to track branching
 		self.stack = list()
-		self.immediateExecution = True
 	
 	def __call__(self):
 		self.reset()

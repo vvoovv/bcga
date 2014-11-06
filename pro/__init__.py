@@ -20,12 +20,6 @@ z = "z"
 
 def rule(operator):
 	def inner(*args, **kwargs):
-		state = context.getState()
-		if not state.valid:
-			print(operator.__name__, "invalid state")
-		if context.immediateExecution:
-			operator(*args, **kwargs)
-		else:
 			return Rule(operator, args, kwargs)
 	return inner
 

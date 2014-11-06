@@ -1,7 +1,7 @@
-from .base import ComplexOperator
+from .base import Operator, ComplexOperator
 from .base import context
 
-def split(direction, **kwargs):
+def split(direction, *parts, **kwargs):
 	"""
 	Splits a 2D-shape into a number of shapes. Must be use with accompanying into(...) function.
 	
@@ -12,16 +12,17 @@ def split(direction, **kwargs):
 		reverse (bool): Split definitions in the accompanying into(...) functions are processed in the reversed order.
 			The default value is False.
 	"""
-	return context.factory["Split"](direction, **kwargs)
+	return context.factory["Split"](direction, *parts, **kwargs)
 
 class Split(ComplexOperator):
-	def __init__(self, direction, **kwargs):
+	def __init__(self, direction, *parts, **kwargs):
 		self.direction = direction
 		self.reverse = False
+		self.parts = parts
 		# apply kwargs
 		for k in kwargs:
 			setattr(self, k, kwargs[k])
-		super().__init__()
+		super().__init__(getNumOperators(parts))
 
 
 class SplitDef:
@@ -147,3 +148,16 @@ def assignCut(cuts, part, multiplier, lastCutValue):
 		# the element of the list (lastCutValue, 0, part) with index 1 is reserved for the related shape to be created later
 		cuts.append([lastCutValue, None, part])
 	return lastCutValue
+
+def getNumOperators(parts):
+	"""
+	An auxiliary function to calculate the number of operators in parts list
+	"""
+	numOperators = 0
+	for p in parts:
+		if isinstance(p, Operator):
+			numOperators += 1
+		elif isinstance(p, tuple):
+			# this is the case of repeat(...) modifier
+			numOperators += getNumOperators(p)
+	return numOperators
