@@ -3,13 +3,14 @@ from .base import context
 
 def split(direction, *parts, **kwargs):
 	"""
-	Splits a 2D-shape into a number of shapes. Must be use with accompanying into(...) function.
+	Splits a 2D-shape into a number of shapes.
 	
 	Args:
 		direction: Split direction, currently x or y
+		*parts: Split definitions
 	
 	Kwargs:
-		reverse (bool): Split definitions in the accompanying into(...) functions are processed in the reversed order.
+		reverse (bool): Split definitions are processed in the reversed order.
 			The default value is False.
 	"""
 	return context.factory["Split"](direction, *parts, **kwargs)
