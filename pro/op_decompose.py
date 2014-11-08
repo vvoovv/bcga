@@ -1,12 +1,5 @@
 from .base import ComplexOperator, context
 
-#faces
-f = "f"
-#edges
-e = "e"
-#vertices
-v = "v"
-
 front = "front"
 back = "back"
 left = "left"

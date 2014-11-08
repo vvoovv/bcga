@@ -1,7 +1,6 @@
 from .op_split import split
 
 from pro.op_decompose import decompose
-from pro.op_decompose import f, e, v
 from pro.op_decompose import front, back, left, right, top, bottom, side, all
 
 from .op_extrude import extrude
