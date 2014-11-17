@@ -450,10 +450,10 @@ class Rectangle(Shape2d):
                 rule = part[2]
             elif middleIndex == partIndex:
                 rule = defs.middle
+            elif defs.section:
+                rule = defs.section
             if rule:
                 shapesWithRule.append((shape, rule))
-            elif defs.section:
-                shapesWithRule.append((shape, defs.section, partIndex))
             if cap1:
                 cap1.append(vert1)
             if cap2:
@@ -467,21 +467,21 @@ class Rectangle(Shape2d):
         vert1 = vert1.vert
         verts = (prevVert1, vert1, vert2, prevVert2) if axis==x else (prevVert1, prevVert2, vert2, vert1)
         shape = createRectangle(verts)
+        rule = None
         if defs.symmetric:
             # the rule for the closing section is the same as for the very first section
             part = parts[0]
-            rule = None
             if len(part)==3:
                 # we have a specific rule for that section of extrusion
                 rule = part[2]
-            if rule:
-                shapesWithRule.append((shape, rule))
             elif defs.section:
-                shapesWithRule.append((shape, defs.section, partIndex))
+                rule = defs.section
         elif defs.last:
-            shapesWithRule.append((shape, defs.last))
+            rule = defs.last
         elif defs.section:
-            shapesWithRule.append((shape, defs.section, numParts))
+            rule = defs.section
+        if rule:
+            shapesWithRule.append((shape, rule))
         # treat caps
         if cap1:
             cap1.append(vert1)
