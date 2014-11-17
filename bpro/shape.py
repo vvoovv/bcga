@@ -476,12 +476,12 @@ class Rectangle(Shape2d):
                 rule = part[2]
             if rule:
                 shapesWithRule.append((shape, rule))
-            elif defs.side:
-                shapesWithRule.append((shape, defs.side, partIndex))
+            elif defs.section:
+                shapesWithRule.append((shape, defs.section, partIndex))
         elif defs.last:
             shapesWithRule.append((shape, defs.last))
-        elif defs.side:
-            shapesWithRule.append((shape, defs.side, numParts))
+        elif defs.section:
+            shapesWithRule.append((shape, defs.section, numParts))
         # treat caps
         if cap1:
             cap1.append(vert1)
