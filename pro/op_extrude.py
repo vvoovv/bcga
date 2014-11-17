@@ -6,6 +6,7 @@ def extrude(depth, *parts, **kwargs):
 	
 	Args:
 		depth (float): Amount of extrusion
+		*parts: Definitions of decomposition parts
 	
 	Kwargs:
 		inheritMaterialAll (bool): All created faces inherit materials (textures or color) from the original 2D shape.

@@ -5,7 +5,7 @@ zAxis = mathutils.Vector((0, 0, 1))
 
 verticalNormalThreshold = 0.999
 
-def rotation_zNormal_xHorizontal(firstLoop, normal=None):
+def rotation_zNormal_xHorizontal(firstLoop, normal=None, reverse=False):
     """
     Returns a rotation matrix that performs the following rotation.
     Z-axis of the 2D-shape coordinate sytem (aligned with the shape normal)
@@ -15,6 +15,11 @@ def rotation_zNormal_xHorizontal(firstLoop, normal=None):
     If the shape is parallel to the xy-plane
     (i.e. the shape normal is aligned along z-axis of the global coordinate system),
     then x-axis of the shape coordinate system is aligned along the firstEdge
+    
+    Args:
+        firstLoop (bmesh.types.BMLoop): The first loop of a face
+        normal (mathutils.Vector): A normal to the face, since it may not be presented in firstLoop
+        reverse (bool): If True, the reversed rotation matrix is returned
     """
     if not normal:
         normal = firstLoop.face.normal
@@ -30,9 +35,11 @@ def rotation_zNormal_xHorizontal(firstLoop, normal=None):
         # Normal is aligned along the positive direction of z-axis of the global coordinate system.
         # The rotation axis is aligned along the negative direction of z-axis of the global coordinate system.
         
-        # cosine and sin of the angle between xAxis and firstEdge
+        # cosine and sine of the angle between xAxis and firstEdge
         cos = firstLoopVector[0]
         sin = firstLoopVector[1]
+        if reverse:
+            sin = -sin
         # rotation matrix from firstEdge to xAxis with -zAxis as the rotation axis
         rotationMatrix[0][0:2] = cos, sin
         rotationMatrix[1][0:2] = -sin, cos
@@ -84,6 +91,8 @@ def rotation_zNormal_xHorizontal(firstLoop, normal=None):
         # Now we are ready to compose the rotation matrix,
         # that describes our rotation normal->zAxis, p2->p1
         _cos = 1 - cos
+        if reverse:
+            sin = -sin
         rotationMatrix[0][0] = cos + axis[0]*axis[0]*_cos
         rotationMatrix[0][1] = axis[0]*axis[1]*_cos - axis[2]*sin
         rotationMatrix[0][2] = axis[0]*axis[2]*_cos + axis[1]*sin

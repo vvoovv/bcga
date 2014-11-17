@@ -8,6 +8,7 @@ from .material import MaterialRegistry
 from .op_decompose import Decompose
 from .op_split import Split
 from .op_extrude import Extrude
+from .op_extrude2 import Extrude2
 from .op_color import Color
 from .op_texture import Texture
 from .op_delete import Delete
@@ -22,6 +23,7 @@ def buildFactory():
 	factory["Decompose"] = Decompose
 	factory["Split"] = Split
 	factory["Extrude"] = Extrude
+	factory["Extrude2"] = Extrude2
 	factory["Color"] = Color
 	factory["Texture"] = Texture
 	factory["Delete"] = Delete

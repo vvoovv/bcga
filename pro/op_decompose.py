@@ -9,8 +9,6 @@ bottom = "bottom"
 side = "side"
 all = "all"
 
-from .base import ComplexOperator, context
-
 def decompose(*parts):
 	return context.factory["Decompose"](*parts)
 

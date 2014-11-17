@@ -1,6 +1,6 @@
 import bpy, bmesh, mathutils
 from pro import context
-from pro import x, y, z
+from pro import x, y
 from pro import front, back, left, right, top, bottom, side, all
 from pro.op_split import calculateSplit
 from .util import rotation_zNormal_xHorizontal, getEndVertex, verticalNormalThreshold, zAxis
@@ -19,6 +19,14 @@ def getInitialShape(bm):
         bmesh.ops.reverse_faces(bm, faces=(face,))
         
     return Shape2d(face.loops[0])
+
+def createRectangle(verts):
+    face = context.bm.faces.new(verts)
+    return Rectangle(face.loops[0])
+
+def createShape2d(verts):
+    face = context.bm.faces.new(verts)
+    return Shape2d(face.loops[0])    
 
 
 class Shape2d:
@@ -285,12 +293,12 @@ class Rectangle(Shape2d):
             v2 = bm.verts.new(v2)
             verts = (prevVert1, v1, v2, prevVert2) if direction==x else (prevVert2, prevVert1, v1, v2)
             # the element of the list cut with index 1 was reserved for the 2D-shape
-            cut[1] = self.createSplitShape(verts)
+            cut[1] = createRectangle(verts)
             prevVert1 = v1
             prevVert2 = v2
         # create a face for the last cut section (cutValue=1)
         verts = (prevVert1, end1, end2, prevVert2) if direction==x else (prevVert2, prevVert1, end1, end2)
-        cuts[-1][1] = self.createSplitShape(verts)
+        cuts[-1][1] = createRectangle(verts)
         
         context.facesForRemoval.append(self.face)
         
@@ -341,11 +349,6 @@ class Rectangle(Shape2d):
         self.clearUVlayers()
         return cuts
     
-    def createSplitShape(self, verts):
-        bm = context.bm
-        face = bm.faces.new(verts)
-        return Rectangle(face.loops[0])
-    
     def setUV(self, layer, tex):
         """
         Overloads Shape2d.setUV
@@ -385,7 +388,123 @@ class Rectangle(Shape2d):
         width = (getEndVertex(firstLoop).co - self.origin).length
         height = (self.origin - firstLoop.link_loop_prev.vert.co).length
         return (width, height)
-
+    
+    def extrude2(self, parts, defs):
+        from .op_delete import Delete
+        
+        axis = defs.axis
+        # we consider that x-axis of the shape coordinate system is oriented along the firstLoop
+        firstLoop = self.firstLoop
+        # calculate the length of the reference edge
+        v = (firstLoop if axis==x else firstLoop.link_loop_next).edge.verts
+        width = (v[1].co-v[0].co).length
+        # initial points for a newly created rectangle 2D-shape
+        prevVert1 = firstLoop.vert
+        prevVert2 = (firstLoop.link_loop_prev if axis==x else firstLoop.link_loop_next).vert
+        height = (prevVert2.co-prevVert1.co).length
+        # matrix is a reverse one to the matrix returned by self.getMatrix
+        matrix = mathutils.Matrix.Translation(self.origin) * rotation_zNormal_xHorizontal(firstLoop, self.getNormal(), True)
+        
+        # check if need to create cap1
+        _cap1 = defs.cap1 if defs.cap1 else defs.cap
+        # use cap1 variable to store vertices for cap number 1
+        cap1 = None if isinstance(_cap1, Delete) else [prevVert1]
+        # check if need to create cap2
+        _cap2 = defs.cap2 if defs.cap2 else defs.cap
+        # use cap2 variable to store vertices for cap number 2
+        cap2 = None if isinstance(_cap2, Delete) else [prevVert2]
+        
+        shapesWithRule = []
+        numParts = len(parts)
+        # For symmetric extrusions: check for a middle part if numParts is even and defs.middle is given
+        middleIndex = numParts//2 if defs.symmetric and numParts % 2 == 0 and defs.middle else -1
+        partIndex = 0
+        while partIndex<numParts:
+            part = parts[partIndex]
+            # coordinate along the reference edge
+            coord = part[0]*width
+            depth = part[1]
+            if axis==x:
+                x1 = coord
+                x2 = coord
+                y1 = 0
+                y2 = height
+            else:
+                x1 = 0
+                x2 = height
+                y1 = coord
+                y2 = coord
+            # vert1
+            vert1 = matrix*mathutils.Vector((x1, y1, depth))
+            vert1 = context.bm.verts.new(vert1)
+            # vert2
+            vert2 = matrix*mathutils.Vector((x2, y2, depth))
+            vert2 = context.bm.verts.new(vert2)
+            verts = (prevVert1, vert1, vert2, prevVert2) if axis==x else (prevVert1, prevVert2, vert2, vert1)
+            shape = createRectangle(verts)
+            # check we have a rule for the shape
+            rule = None
+            # check from more to less specific rules
+            if len(part)==3:
+                # we have a specific rule for that section of extrusion
+                rule = part[2]
+            elif middleIndex == partIndex:
+                rule = defs.middle
+            if rule:
+                shapesWithRule.append((shape, rule))
+            elif defs.section:
+                shapesWithRule.append((shape, defs.section, partIndex))
+            if cap1:
+                cap1.append(vert1)
+            if cap2:
+                cap2.append(vert2)
+            prevVert1 = vert1
+            prevVert2 = vert2
+            partIndex += 1
+        # create a rectangle shape for the closing section finishing at coord==1 with depth==0
+        vert1 = firstLoop.link_loop_next if axis==x else firstLoop.link_loop_prev
+        vert2 = (vert1.link_loop_next if axis==x else vert1.link_loop_prev).vert
+        vert1 = vert1.vert
+        verts = (prevVert1, vert1, vert2, prevVert2) if axis==x else (prevVert1, prevVert2, vert2, vert1)
+        shape = createRectangle(verts)
+        if defs.symmetric:
+            # the rule for the closing section is the same as for the very first section
+            part = parts[0]
+            rule = None
+            if len(part)==3:
+                # we have a specific rule for that section of extrusion
+                rule = part[2]
+            if rule:
+                shapesWithRule.append((shape, rule))
+            elif defs.side:
+                shapesWithRule.append((shape, defs.side, partIndex))
+        elif defs.last:
+            shapesWithRule.append((shape, defs.last))
+        elif defs.side:
+            shapesWithRule.append((shape, defs.side, numParts))
+        # treat caps
+        if cap1:
+            cap1.append(vert1)
+            if axis==x:
+                cap1 = reversed(cap1)
+            shape = createShape2d(cap1)
+            if _cap1:
+                # _cape1 is the rule for shape
+                shapesWithRule.append((shape, _cap1))
+        if cap2:
+            cap2.append(vert2)
+            if axis==y:
+                cap2 = reversed(cap2)
+            shape = createShape2d(cap2)
+            if _cap2:
+                # _cape2 is the rule for shape
+                shapesWithRule.append((shape, _cap2))
+        
+        if not defs.keepOriginal:
+            context.facesForRemoval.append(self.face)
+        
+        return shapesWithRule
+                
 
 class Shape3d:
     """
