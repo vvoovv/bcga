@@ -20,21 +20,51 @@ class Modifier:
 	
 	def execute(self):
 		pass
-			
+
+
+def countOperator(o):
+	"""
+	A helper function that checks if its argument must be counted as Prokitektura Operator
+	in a constructor of the other operators. Every operator can be counted once.
+	The function also sets count attribute to False in the positive case when it returns True
+	
+	Returns:
+	    bool: True if the operator must be counted, False otherwise
+	"""
+	if isinstance(o, Operator) and o.count:
+		result = True
+		o.count = False
+	else:
+		result = False
+	return result
+
 
 class Operator:
 	def __init__(self):
+		# Every operator can be counted once time in a constructor of the other operators
+		# self.count is set to False in the countOperator helper function
+		self.count = True
 		context.operator.addChildOperator(self)
 	
 	def __rrshift__(self, value):
-		if isinstance(value, Modifier):
-			setattr(self, value.modifier, True)
-			self.value = value.value
-		elif isinstance(value, Param):
-			self.value = value.value
+		# The operator to be returned.
+		# We create a wrapper RrshiftOperator if >> already was applied to the operator instance
+		wrapper = False
+		if hasattr(self, "value"):
+			operator = RrshiftOperator(self)
+			wrapper = True
 		else:
-			self.value = value
-		return self
+			operator = self
+		if isinstance(value, Modifier):
+			setattr(operator, value.modifier, True)
+			operator.value = value.value
+			if wrapper:
+				wrapper.modifier = value.modifier
+		elif isinstance(value, Param):
+			operator.value = value.value
+		else:
+			operator.value = value
+		return operator
 	
 	def execute(self, *args):
 		pass
@@ -43,15 +73,52 @@ class Operator:
 		return self.__class__.__name__
 
 
-class Rule(Operator):
+class RrshiftOperator:
+	"""A wrapper class to support multiple usage of operators with >>"""
+	def __init__(self, operator):
+		# operator has been alread counted
+		self.count = False
+		self.modifier = None
+		self.operator = operator
+	
+	def execute(self):
+		operator = self.operator
+		# remember original value for self.operator
+		value = self.value
+		operator.value = self.value
+		self.operator.execute()
+		if self.modifier:
+			delattr(operator, self.modifier)
+		# restore the original value
+		operator.value = value
+		if self.modifier:
+			setattr(operator, self.modifier, True)
+
+
+class ComplexOperator(Operator):
+	def __init__(self, numParts):
+		# remove numParts operators from
+		context.operator.removeChildOperators(numParts) 
+		super().__init__()
+
+
+class Rule(ComplexOperator):
 	
 	def __init__(self, operator, args, kwargs):
 		self.operator = operator
 		self.args = args
 		self.kwargs = kwargs
+		# count how many Prokitektura operators we have in args and kwargs
+		numParts = 0
+		for arg in args:
+			if countOperator(arg):
+				numParts += 1
+		for k in kwargs:
+			if countOperator(kwargs[k]):
+				numParts += 1
 		# list of child operators
 		self.operators = []
-		super().__init__()
+		super().__init__(numParts)
 	
 	def execute(self):
 		# setting the current operator to self
@@ -76,13 +143,6 @@ class Rule(Operator):
 	
 	def __str__(self):
 		return self.operator.__name__
-
-
-class ComplexOperator(Operator):
-	def __init__(self, numParts):
-		# remove numParts operators from
-		context.operator.removeChildOperators(numParts) 
-		super().__init__()
 
 
 class OperatorDef:
@@ -152,6 +212,12 @@ class Context:
 		for param in self.params:
 			if param.random:
 				param.assignValue()
+
+
+def shape():
+	context.operator.executeChildOperators()
+	return context.getState().shape
+
 
 #
 # Parameters stuff

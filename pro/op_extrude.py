@@ -1,4 +1,4 @@
-from .base import ComplexOperator, context
+from .base import ComplexOperator, context, countOperator
 
 def extrude(depth, *parts, **kwargs):
 	"""
@@ -30,7 +30,11 @@ class Extrude(ComplexOperator):
 			setattr(self, k, kwargs[k])
 		# depth may be an instance of ParamFloat, so cast it to float
 		self.depth = float(depth)
-		numParts = len(parts)
-		if numParts:
+		# count operators
+		numOperators = 0
+		for part in parts:
+			if countOperator(part):
+				numOperators += 1
+		if len(parts):
 			self.parts = parts
-		super().__init__(numParts)
+		super().__init__(numOperators)

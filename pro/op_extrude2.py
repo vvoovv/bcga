@@ -54,14 +54,18 @@ class Extrude2(ComplexOperator):
                     nextArg = args[argIndex+1]
                     if isinstance(nextArg, Operator):
                         part = (arg, nextArg.value, nextArg)
-                        numOperators += 1
+                        if nextArg.count:
+                            nextArg.count = False
+                            numOperators += 1
                     else:
                         part = (arg, nextArg)
                     parts.append(part)
                     argIndex += 2
             else:
                 setattr(self, arg.value, arg)
-                numOperators += 1
+                if arg.count:
+                    arg.count = False
+                    numOperators += 1
                 argIndex += 1
         # update part for self.symmetric = True
         if self.symmetric:

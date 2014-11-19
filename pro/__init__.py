@@ -13,6 +13,7 @@ from .op_texture import texture
 from .op_delete import delete
 
 from .base import flt, rel
+from .base import shape
 from .base import param, random
 from .base import context
 from .base import Rule
@@ -31,12 +32,3 @@ def rule(operator):
 
 def repeat(*args):
 	return args
-
-def size(sizeX, sizeY, sizeZ):
-	pass
-
-def translate(tx, ty, tz):
-	pass
-
-def insert(assetId):
-	pass

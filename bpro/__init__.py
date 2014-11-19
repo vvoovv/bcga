@@ -65,6 +65,7 @@ def apply(ruleFile, startRule="Lot"):
 	# setting the current operator to a dummy one to avoid an exception
 	class dummy:
 		def addChildOperator(self, o): pass
+		def removeChildOperators(self, numParts): pass
 	context.operator = dummy()
 	# evaluate the rule set
 	getattr(module, startRule)().execute()

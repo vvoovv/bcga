@@ -157,7 +157,9 @@ def getNumOperators(parts):
 	numOperators = 0
 	for p in parts:
 		if isinstance(p, Operator):
-			numOperators += 1
+			if p.count:
+				p.count = False
+				numOperators += 1
 		elif isinstance(p, tuple):
 			# this is the case of repeat(...) modifier
 			numOperators += getNumOperators(p)

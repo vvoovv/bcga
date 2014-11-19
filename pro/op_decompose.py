@@ -1,4 +1,4 @@
-from .base import ComplexOperator, context
+from .base import ComplexOperator, context, countOperator
 
 front = "front"
 back = "back"
@@ -15,4 +15,9 @@ def decompose(*parts):
 class Decompose(ComplexOperator):
 	def __init__(self, *parts):
 		self.parts = parts
-		super().__init__(len(parts))
+		# count operators
+		numOperators = 0
+		for part in parts:
+			if countOperator(part):
+				numOperators += 1
+		super().__init__(numOperators)
