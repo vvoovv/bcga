@@ -11,7 +11,7 @@ def extrude(depth, *parts, **kwargs):
 	Kwargs:
 		inheritMaterialAll (bool): All created faces inherit materials (textures or color) from the original 2D shape.
 			The default value is False.
-		inheritMaterialSides (bool): All but the extruded faces inherit materials (textures or color) from the original 2D shape.
+		inheritMaterialSide (bool): All but the extruded faces inherit materials (textures or color) from the original 2D shape.
 			The default value is False.
 		inheritMaterialExtruded (bool): Only the extruded face inherits materials (textures or color) from the original 2D shape.
 			The default value is False.
@@ -21,7 +21,7 @@ def extrude(depth, *parts, **kwargs):
 class Extrude(ComplexOperator):
 	def __init__(self, depth, *parts, **kwargs):
 		self.inheritMaterialAll = False
-		self.inheritMaterialSides = False
+		self.inheritMaterialSide = False
 		self.inheritMaterialExtruded = False
 		self.keepOriginal = False
 		self.parts = None

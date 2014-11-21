@@ -121,11 +121,19 @@ class Shape2d:
                 break
         
         # Inherit material from the original shape
-        # depending on settings (inheritMaterialAll, inheritMaterialSides, inheritMaterialExtruded).
+        # depending on settings (inheritMaterialAll, inheritMaterialSide, inheritMaterialExtruded).
         # The extruded face in Blender inherits uv-coordinates and material of the original face automatically.
-        # So there is no need to process inheritMaterialExtruded
+        # So there is no need to process inheritMaterialExtruded.
+        # However we still need set UV-coordinates and to copy entries from self.uvLayers for the extruded face
         materialIndex = self.face.material_index
-        if extrude.inheritMaterialSides or extrude.inheritMaterialAll:
+        if extrude.inheritMaterialAll or extrude.inheritMaterialExtruded:
+            # extruded shape
+            shape = shapes[sideIndex-1]
+            for layer in self.uvLayers:
+                tex = self.uvLayers[layer]
+                shape.setUV(layer, tex)
+                shape.addUVlayer(layer, tex)
+        if extrude.inheritMaterialSide or extrude.inheritMaterialAll:
             numShapes = len(shapes)
             if len(self.uvLayers)>0:
                 # blenderTexture is needed to set preview texture
