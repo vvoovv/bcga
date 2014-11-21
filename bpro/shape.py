@@ -4,6 +4,7 @@ from pro import x, y
 from pro import front, back, left, right, top, bottom, side, all
 from pro.op_split import calculateSplit
 from .util import rotation_zNormal_xHorizontal, getEndVertex, verticalNormalThreshold, zAxis
+from .material import setPreviewTexture
 
 # normal threshold for the Shape3d.comp method to classify if the face is horizontal or vertical
 horizontalFaceThreshold = 0.70711 # math.sqrt(0.5)
@@ -132,12 +133,12 @@ class Shape2d:
             for layer in self.uvLayers:
                 # No need to call shape.setUV(...) for the extruded shape,
                 # since UV-coordinates are copied by Blender automatically
+                # No need to set preview texture for the extruded shape.
+                # since the preview texture is set automatically by Blender
                 shape.addUVlayer(layer, self.uvLayers[layer])
         if extrude.inheritMaterialSide or extrude.inheritMaterialAll:
             numShapes = len(shapes)
             if len(self.uvLayers)>0:
-                # blenderTexture is needed to set preview texture
-                blenderTexture = bpy.context.object.data.materials[materialIndex].texture_slots[0].texture
                 # inherit uv-coordinates
                 for i in range(sideIndex, numShapes):
                     shape = shapes[i]
@@ -145,11 +146,11 @@ class Shape2d:
                         tex = self.uvLayers[layer]
                         shape.setUV(layer, tex)
                         shape.addUVlayer(layer, tex)
-                    # set preview texture for each newly created shape
-                    shape.face[bm.faces.layers.tex.active].image = blenderTexture.image
-            # inherit material_index
+            # inherit material_index and set preview texture
             for i in range(sideIndex, numShapes):
-                shapes[i].face.material_index = materialIndex
+                shape = shapes[i]
+                shape.face.material_index = materialIndex
+                setPreviewTexture(shape, materialIndex)
 
         # perform some cleanup
         self.clearUVlayers()
@@ -313,8 +314,6 @@ class Rectangle(Shape2d):
         materialIndex = self.face.material_index
         
         if len(self.uvLayers)>0:
-            # blenderTexture is needed to set preview texture
-            blenderTexture = bpy.context.object.data.materials[materialIndex].texture_slots[0].texture
             # Assign uv coordinates for each uvLayer and for each newly cut shape
             # The uv coordinates are inherited from the parent shape
             for layer in self.uvLayers:
@@ -346,13 +345,11 @@ class Rectangle(Shape2d):
                         loops[3][uv_layer].uv = origin + cutValue*vec
                     shape.addUVlayer(layer, self.uvLayers[layer])
                     lastCutValue = cutValue
-            # set preview texture for each newly cut shape
-            for cut in cuts:
-                cut[1].face[bm.faces.layers.tex.active].image = blenderTexture.image
         
-        # finally, inherit the material_index from the parent shape
+        # finally, inherit the material_index from the parent shape and set preview texture
         for cut in cuts:
             cut[1].face.material_index = materialIndex
+            setPreviewTexture(cut[1], materialIndex)
         # perform some cleanup
         self.clearUVlayers()
         return cuts

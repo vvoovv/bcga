@@ -4,6 +4,8 @@ import bpy
 from pro import context
 from pro.base import Operator
 
+from .material import setPreviewTexture
+
 
 class Texture(Operator):
     
@@ -30,7 +32,6 @@ class Texture(Operator):
             material = materialRegistry.getMaterial(name)
             if material:
                 materialIndex = materialRegistry.getMaterialIndex(name)
-                blenderTexture = material.texture_slots[name].texture
             else:
                 blenderTexture = bpy.data.textures.new(name, type = "IMAGE")
                 blenderTexture.image = bpy.data.images.load(path)
@@ -47,4 +48,4 @@ class Texture(Operator):
             shape.face.material_index = materialIndex
             shape.addUVlayer(self.layer, self)
             # set preview texture
-            shape.face[bm.faces.layers.tex[self.layer]].image = blenderTexture.image
+            setPreviewTexture(shape, materialIndex)

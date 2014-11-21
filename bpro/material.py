@@ -1,5 +1,8 @@
 import bpy
 
+from pro import context
+
+
 class MaterialRegistry:
     
     def __init__(self):
@@ -45,3 +48,10 @@ class MaterialRegistry:
     
     def getMaterialIndex(self, name):
         return self.reg[name]
+
+
+def setPreviewTexture(shape, materialIndex):
+    # a slot for the texture
+    slot = bpy.context.object.data.materials[materialIndex].texture_slots[0]
+    if slot:
+        shape.face[context.bm.faces.layers.tex.active].image = slot.texture.image
