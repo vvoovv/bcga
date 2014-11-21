@@ -130,9 +130,9 @@ class Shape2d:
             # extruded shape
             shape = shapes[sideIndex-1]
             for layer in self.uvLayers:
-                tex = self.uvLayers[layer]
-                shape.setUV(layer, tex)
-                shape.addUVlayer(layer, tex)
+                # No need to call shape.setUV(...) for the extruded shape,
+                # since UV-coordinates are copied by Blender automatically
+                shape.addUVlayer(layer, self.uvLayers[layer])
         if extrude.inheritMaterialSide or extrude.inheritMaterialAll:
             numShapes = len(shapes)
             if len(self.uvLayers)>0:
