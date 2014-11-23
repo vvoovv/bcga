@@ -12,6 +12,9 @@ def extrude2(*args, **kwargs):
 
 class Extrude2(ComplexOperator):
     def __init__(self, *args, **kwargs):
+        self.inheritMaterialAll = False
+        self.inheritMaterialSection = False
+        self.inheritMaterialCap = False
         self.keepOriginal = False
         self.symmetric = True
         self.rel = True

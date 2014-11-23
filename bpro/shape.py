@@ -1,4 +1,5 @@
 import bpy, bmesh, mathutils
+import math
 from pro import context
 from pro import x, y
 from pro import front, back, left, right, top, bottom, side, all
@@ -143,9 +144,7 @@ class Shape2d:
                 for i in range(sideIndex, numShapes):
                     shape = shapes[i]
                     for layer in self.uvLayers:
-                        tex = self.uvLayers[layer]
-                        shape.setUV(layer, tex)
-                        shape.addUVlayer(layer, tex)
+                        shape.setUV(layer, self.uvLayers[layer])
             # inherit material_index and set preview texture
             for i in range(sideIndex, numShapes):
                 shape = shapes[i]
@@ -185,7 +184,7 @@ class Shape2d:
     
     def addUVlayer(self, layer, tex):
         """
-        Adds a new antry to self.uvLayers
+        Adds a new entry to self.uvLayers
         
         Args:
             layer (str): UV-layer, a key for self.uvLayers
@@ -198,7 +197,7 @@ class Shape2d:
     
     def setUV(self, layer, tex):
         """
-        Assigns uv-coordinates to the shape for the specified uv-layer
+        Assigns uv-coordinates to the shape for the specified uv-layer and adds layer to self.uvLayers
         
         Args:
             layer (str): UV-layer
@@ -225,6 +224,8 @@ class Shape2d:
             loop = loop.link_loop_next
             if loop == firstLoop:
                 break
+        # add layer to self.uvLayers
+        self.addUVlayer(layer, tex)
     
     def size(self):
         """
@@ -317,14 +318,14 @@ class Rectangle(Shape2d):
             # Assign uv coordinates for each uvLayer and for each newly cut shape
             # The uv coordinates are inherited from the parent shape
             for layer in self.uvLayers:
-                uv_layer = bm.loops.layers.uv[layer]
+                uvLayer = bm.loops.layers.uv[layer]
                 
                 # origin for the uv space
-                origin = firstLoop[uv_layer].uv
+                origin = firstLoop[uvLayer].uv
                 # end point of vector the uv space, oriented along u-axis
-                endU = firstLoop.link_loop_next[uv_layer].uv
+                endU = firstLoop.link_loop_next[uvLayer].uv
                 # end point of vector the uv space, oriented along v-axis
-                endV = firstLoop.link_loop_prev[uv_layer].uv
+                endV = firstLoop.link_loop_prev[uvLayer].uv
                 # vector in the uv space along u-axis (direction==x) or v-axis (direction==y)
                 vec = endU-origin if direction==x else endV-origin
                 
@@ -334,15 +335,15 @@ class Rectangle(Shape2d):
                     shape = cut[1]
                     loops = shape.face.loops
                     if direction == x:
-                        loops[0][uv_layer].uv = origin + lastCutValue*vec
-                        loops[1][uv_layer].uv = origin + cutValue*vec
-                        loops[2][uv_layer].uv = endV + cutValue*vec
-                        loops[3][uv_layer].uv = endV + lastCutValue*vec
+                        loops[0][uvLayer].uv = origin + lastCutValue*vec
+                        loops[1][uvLayer].uv = origin + cutValue*vec
+                        loops[2][uvLayer].uv = endV + cutValue*vec
+                        loops[3][uvLayer].uv = endV + lastCutValue*vec
                     else:
-                        loops[0][uv_layer].uv = origin + lastCutValue*vec
-                        loops[1][uv_layer].uv = endU + lastCutValue*vec
-                        loops[2][uv_layer].uv = endU + cutValue*vec
-                        loops[3][uv_layer].uv = origin + cutValue*vec
+                        loops[0][uvLayer].uv = origin + lastCutValue*vec
+                        loops[1][uvLayer].uv = endU + lastCutValue*vec
+                        loops[2][uvLayer].uv = endU + cutValue*vec
+                        loops[3][uvLayer].uv = origin + cutValue*vec
                     shape.addUVlayer(layer, self.uvLayers[layer])
                     lastCutValue = cutValue
         
@@ -354,7 +355,7 @@ class Rectangle(Shape2d):
         self.clearUVlayers()
         return cuts
     
-    def setUV(self, layer, tex):
+    def setUV(self, layer, tex, offsetX=0, offsetY=0):
         """
         Overloads Shape2d.setUV
         """
@@ -377,13 +378,15 @@ class Rectangle(Shape2d):
             size = self.size()
             width = size[0]/width
             height = size[1]/height
-            loop[uvLayer].uv = (0, 0)
+            loop[uvLayer].uv = (offsetX, offsetY)
             loop = loop.link_loop_next
-            loop[uvLayer].uv = (width, 0)
+            loop[uvLayer].uv = (offsetX+width, offsetY+0)
             loop = loop.link_loop_next
-            loop[uvLayer].uv = (width, height)
+            loop[uvLayer].uv = (offsetX+width, offsetY+height)
             loop = loop.link_loop_next
-            loop[uvLayer].uv = (0, height)
+            loop[uvLayer].uv = (offsetX, offsetY+height)
+        # add layer to self.uvLayers
+        self.addUVlayer(layer, tex)
     
     def size(self):
         """
@@ -396,6 +399,39 @@ class Rectangle(Shape2d):
     
     def extrude2(self, parts, defs):
         from .op_delete import Delete
+        def inheritMaterial(shape, loop1, loop2, bm):
+            """A helper function for material inheritance"""
+            loops = shape.face.loops
+            for layer in self.uvLayers:
+                uvLayer = bm.loops.layers.uv[layer]
+                uv1 = loop1[uvLayer].uv
+                uv2 = loop2[uvLayer].uv
+                # shape width
+                w = (vert1.co-prevVert1.co).length
+                if axis == x:
+                    # u-coordinate for vert1 and vert2
+                    u = uv1[0] + w
+                    loops[0][uvLayer].uv = uv1
+                    loops[1][uvLayer].uv = (u, uv1[1])
+                    loops[2][uvLayer].uv = (u, uv2[1])
+                    loops[3][uvLayer].uv = uv2
+                else:
+                    # v-coordinate for vert1 and vert2
+                    v = uv1[1] + w
+                    loops[0][uvLayer].uv = uv1
+                    loops[1][uvLayer].uv = uv2
+                    loops[2][uvLayer].uv = (uv2[0], v)
+                    loops[3][uvLayer].uv = (uv1[0], v)
+                shape.addUVlayer(layer, self.uvLayers[layer])
+            # inherit material_index and set preview texture
+            shape.face.material_index = materialIndex
+            setPreviewTexture(shape, materialIndex)
+            loop1 = loops[1] if axis == x else loops[3]
+            loop2 = loops[2] if axis == x else loops[2]
+            return loop1, loop2
+            
+        
+        bm = context.bm
         
         axis = defs.axis
         # we consider that x-axis of the shape coordinate system is oriented along the firstLoop
@@ -405,10 +441,17 @@ class Rectangle(Shape2d):
         width = (v[1].co-v[0].co).length
         # initial points for a newly created rectangle 2D-shape
         prevVert1 = firstLoop.vert
-        prevVert2 = (firstLoop.link_loop_prev if axis==x else firstLoop.link_loop_next).vert
+        # loop for the prevVert1 is needed to set uv-coordinates
+        loop1 = firstLoop
+        prevVert2 = firstLoop.link_loop_prev if axis==x else firstLoop.link_loop_next
+        # loop for the prevVert2 is needed to set uv-coordinates
+        loop2 = prevVert2
+        prevVert2 = prevVert2.vert
         height = (prevVert2.co-prevVert1.co).length
         # matrix is a reverse one to the matrix returned by self.getMatrix
         matrix = mathutils.Matrix.Translation(self.origin) * rotation_zNormal_xHorizontal(firstLoop, self.getNormal(), True)
+        
+        materialIndex = self.face.material_index
         
         # check if need to create cap1
         _cap1 = defs.cap1 if defs.cap1 else defs.cap
@@ -441,12 +484,15 @@ class Rectangle(Shape2d):
                 y2 = coord
             # vert1
             vert1 = matrix*mathutils.Vector((x1, y1, depth))
-            vert1 = context.bm.verts.new(vert1)
+            vert1 = bm.verts.new(vert1)
             # vert2
             vert2 = matrix*mathutils.Vector((x2, y2, depth))
-            vert2 = context.bm.verts.new(vert2)
+            vert2 = bm.verts.new(vert2)
             verts = (prevVert1, vert1, vert2, prevVert2) if axis==x else (prevVert1, prevVert2, vert2, vert1)
             shape = createRectangle(verts)
+            # inherit material if necessary
+            if defs.inheritMaterialAll or defs.inheritMaterialSection:
+                loop1, loop2 = inheritMaterial(shape, loop1, loop2, bm)
             # check we have a rule for the shape
             rule = None
             # check from more to less specific rules
@@ -472,6 +518,10 @@ class Rectangle(Shape2d):
         vert1 = vert1.vert
         verts = (prevVert1, vert1, vert2, prevVert2) if axis==x else (prevVert1, prevVert2, vert2, vert1)
         shape = createRectangle(verts)
+        # inherit material if necessary
+        if defs.inheritMaterialAll or defs.inheritMaterialSection:
+            inheritMaterial(shape, loop1, loop2, bm)
+        # check if we a rule for the closing section
         rule = None
         if defs.symmetric:
             # the rule for the closing section is the same as for the very first section
@@ -493,6 +543,13 @@ class Rectangle(Shape2d):
             if axis==x:
                 cap1 = reversed(cap1)
             shape = createShape2d(cap1)
+            # inherit material if necessary
+            if defs.inheritMaterialAll or defs.inheritMaterialCap:
+                for layer in self.uvLayers:
+                    shape.setUV(layer, self.uvLayers[layer])
+                # inherit material_index and set preview texture
+                shape.face.material_index = materialIndex
+                setPreviewTexture(shape, materialIndex)
             if _cap1:
                 # _cape1 is the rule for shape
                 shapesWithRule.append((shape, _cap1))
@@ -501,13 +558,20 @@ class Rectangle(Shape2d):
             if axis==y:
                 cap2 = reversed(cap2)
             shape = createShape2d(cap2)
+            # inherit material if necessary
+            if defs.inheritMaterialAll or defs.inheritMaterialCap:
+                for layer in self.uvLayers:
+                    shape.setUV(layer, self.uvLayers[layer])
+                # inherit material_index and set preview texture
+                shape.face.material_index = materialIndex
+                setPreviewTexture(shape, materialIndex)
             if _cap2:
                 # _cape2 is the rule for shape
                 shapesWithRule.append((shape, _cap2))
         
         if not defs.keepOriginal:
             context.facesForRemoval.append(self.face)
-        
+            
         return shapesWithRule
                 
 

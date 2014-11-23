@@ -69,6 +69,9 @@ class Operator:
 	def execute(self, *args):
 		pass
 	
+	def __call__(self):
+		context.operator.addChildOperator(self)
+	
 	def __str__(self):
 		return self.__class__.__name__
 

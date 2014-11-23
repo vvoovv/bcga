@@ -46,6 +46,5 @@ class Texture(Operator):
                 materialIndex = materialRegistry.getMaterialIndex(name)
                 
             shape.face.material_index = materialIndex
-            shape.addUVlayer(self.layer, self)
             # set preview texture
             setPreviewTexture(shape, materialIndex)
