@@ -52,6 +52,8 @@ class MaterialRegistry:
 
 def setPreviewTexture(shape, materialIndex):
     # a slot for the texture
-    slot = bpy.context.object.data.materials[materialIndex].texture_slots[0]
+    materials = bpy.context.object.data.materials
+    if len(materials)==0: return
+    slot = materials[materialIndex].texture_slots[0]
     if slot:
         shape.face[context.bm.faces.layers.tex.active].image = slot.texture.image
