@@ -1,5 +1,4 @@
 import bpy, bmesh, mathutils
-import math
 from pro import context
 from pro import x, y
 from pro import front, back, left, right, top, bottom, side, all
@@ -299,8 +298,8 @@ class Rectangle(Shape2d):
             cutValue = cut[0]
             v1 = origin1.co + cutValue*vec1
             v2 = origin2.co + cutValue*vec2
-            v1 = bm.verts.new(v1)
-            v2 = bm.verts.new(v2)
+            v1 = context.vertexRegistry.getVertex(v1.to_tuple())
+            v2 = context.vertexRegistry.getVertex(v2.to_tuple())
             verts = (prevVert1, v1, v2, prevVert2) if direction==x else (prevVert2, prevVert1, v1, v2)
             # the element of the list cut with index 1 was reserved for the 2D-shape
             cut[1] = createRectangle(verts)

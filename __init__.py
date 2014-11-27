@@ -116,7 +116,7 @@ class Pro(bpy.types.Operator):
 				collectionItem.value = param.getValue()
 				param.collectionItem = collectionItem
 				paramCounter += 1
-				if paramCounter==8:break
+				if paramCounter==9:break
 		return {"FINISHED"}
 	
 	def execute(self, context):
@@ -125,7 +125,7 @@ class Pro(bpy.types.Operator):
 			param = param[1]
 			param.setValue(getattr(param.collectionItem, "value"))
 			paramCounter += 1
-			if paramCounter==8:break
+			if paramCounter==9:break
 		bpro.apply(self.module)
 		return {"FINISHED"}
 	
@@ -140,7 +140,7 @@ class Pro(bpy.types.Operator):
 				row.label(paramName+":")
 				row.prop(param[1].collectionItem, "value")
 				paramCounter += 1
-				if paramCounter==8:break
+				if paramCounter==9:break
 
 
 class Bake(bpy.types.Operator):

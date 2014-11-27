@@ -5,6 +5,8 @@ from pro import context
 
 from .material import MaterialRegistry
 
+from .util import VertexRegistry
+
 from .op_decompose import Decompose
 from .op_split import Split
 from .op_extrude import Extrude
@@ -12,6 +14,7 @@ from .op_extrude2 import Extrude2
 from .op_color import Color
 from .op_texture import Texture
 from .op_delete import Delete
+from .op_join import Join
 
 from pro.base import Param
 
@@ -27,6 +30,7 @@ def buildFactory():
 	factory["Color"] = Color
 	factory["Texture"] = Texture
 	factory["Delete"] = Delete
+	factory["Join"] = Join
 
 def apply(ruleFile, startRule="Lot"):
 	# apply all transformations to the active Blender object
@@ -43,13 +47,15 @@ def apply(ruleFile, startRule="Lot"):
 	bpy.ops.object.mode_set(mode="EDIT")
 	# setting bmesh instance
 	bm = bmesh.from_edit_mesh(mesh)
-	context.bm = bm
+	context.addAttribute("bm", bm)
 	# list of unused faces for removal
-	context.facesForRemoval = []
+	context.addAttribute("facesForRemoval", [])
 	# set up the material registry
-	context.materialRegistry = MaterialRegistry()
+	context.addAttribute("materialRegistry", MaterialRegistry())
+	# set up vertex registry to ensure vertex uniqueness
+	context.addAttribute("vertexRegistry", VertexRegistry())
 	# initialize the context
-	context.init(getInitialShape(context.bm))
+	context.init(getInitialShape(bm))
 	
 	if isinstance(ruleFile, str):
 		module = getModule(ruleFile)
@@ -72,15 +78,15 @@ def apply(ruleFile, startRule="Lot"):
 	
 	# remove unused faces from context.facesForRemoval
 	bmesh.ops.delete(bm, geom=context.facesForRemoval, context=5)
-	# remove doubles
+	# there still may be some doubles, inspite of the use of util.VertexMaterial
 	bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
+	context.executeDeferred()
 	# update mesh
 	bmesh.update_edit_mesh(mesh)
 	# set OBJECT mode
 	bpy.ops.object.mode_set(mode="OBJECT")
 	# cleaning context from blender specific members
-	delattr(context, "bm")
-	delattr(context, "facesForRemoval")
+	context.removeAttributes()
 	
 	return (module, params)
 

@@ -1,5 +1,7 @@
 import mathutils
 
+from pro import context
+
 xAxis = mathutils.Vector((1, 0, 0))
 zAxis = mathutils.Vector((0, 0, 1))
 
@@ -113,3 +115,17 @@ def getEndVertex(loop):
     Returns the end vertex for the loop
     """
     return loop.link_loop_next.vert
+
+
+class VertexRegistry:
+    """A helper class to ensure vertex uniqueness"""
+    def __init__(self):
+        self.verts = {}
+    
+    def getVertex(self, coords):
+        if coords in self.verts:
+            vert = self.verts[coords]
+        else:
+            vert = context.bm.verts.new(coords)
+            self.verts[coords] = vert
+        return vert

@@ -11,6 +11,7 @@ from .op_extrude2 import middle, section, cap1, cap2, cap
 from .op_color import color
 from .op_texture import texture
 from .op_delete import delete
+from .op_join import join
 
 from .base import flt, rel
 from .base import shape

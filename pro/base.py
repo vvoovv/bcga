@@ -182,11 +182,20 @@ class Context:
 	def reset(self):
 		# the factory stores references to the basic classes
 		self.factory = {}
-		# stack to track branching
-		self.stack = list()
+		# implementation specific attributes
+		self.attrs = []
 	
 	def __call__(self):
 		self.reset()
+	
+	def addAttribute(self, attr, value):
+		setattr(self, attr, value)
+		self.attrs.append(attr)
+	
+	def removeAttributes(self):
+		for attr in self.attrs:
+			delattr(self, attr)
+		self.attrs = []
 	
 	def getState(self):
 		return self.stack[-1]
@@ -204,6 +213,9 @@ class Context:
 		self.params.append(param)
 		
 	def init(self, shape):
+		# stack to track branching
+		self.stack = []
+		self.deferreds = []
 		# the list of params
 		self.params = []
 		# push the initial state with the initial shape to the execution stack
@@ -215,6 +227,15 @@ class Context:
 		for param in self.params:
 			if param.random:
 				param.assignValue()
+	
+	def addDeferred(self, shape, deferredOperator):
+		self.deferreds.append((shape, deferredOperator))
+	
+	def executeDeferred(self):
+		for entry in self.deferreds:
+			# entry[1] is operator
+			# entry[0] is shape
+			entry[1].resolve(entry[0])
 
 
 def shape():
