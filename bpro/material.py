@@ -48,6 +48,17 @@ class MaterialRegistry:
     
     def getMaterialIndex(self, name):
         return self.reg[name]
+    
+    def createMaterial(self, name, textures):
+        """
+        Creates a new material and calls self.setMaterial(...)
+        """
+        engine = context.blenderContext.scene.render.engine
+        if engine=="BLENDER_RENDER":
+            material = createBlenderRenderMaterial(name, textures)
+        elif engine=="CYCLES":
+            material = createCyclesRenderMaterial(name, textures)
+        self.setMaterial(name, material)
 
 
 def setPreviewTexture(shape, materialIndex):
@@ -57,3 +68,23 @@ def setPreviewTexture(shape, materialIndex):
     slot = materials[materialIndex].texture_slots[0]
     if slot:
         shape.face[context.bm.faces.layers.tex.active].image = slot.texture.image
+
+
+def createBlenderRenderMaterial(name, textures):
+    texture = textures[0]
+    # create Blender texture
+    blenderTexture = bpy.data.textures.new(name, type = "IMAGE")
+    blenderTexture.image = bpy.data.images.load(texture.path)
+    blenderTexture.use_alpha = True
+
+    material = bpy.data.materials.new(name)
+    textureSlot = material.texture_slots.add()
+    textureSlot.texture = blenderTexture
+    textureSlot.texture_coords = "UV"
+    textureSlot.uv_layer = texture.layer
+    
+    return material
+
+
+def createCyclesRenderMaterial(name, textures):
+    pass

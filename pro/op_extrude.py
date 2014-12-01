@@ -9,11 +9,11 @@ def extrude(depth, *parts, **kwargs):
 		*parts: Definitions of decomposition parts
 	
 	Kwargs:
-		inheritMaterialAll (bool): All created faces inherit materials (textures or color) from the original 2D shape.
+		inheritMaterialAll (bool): All created faces inherit material of the original 2D shape.
 			The default value is False.
-		inheritMaterialSide (bool): All but the extruded faces inherit materials (textures or color) from the original 2D shape.
+		inheritMaterialSide (bool): All but the extruded faces inherit material of the original 2D shape.
 			The default value is False.
-		inheritMaterialExtruded (bool): Only the extruded face inherits materials (textures or color) from the original 2D shape.
+		inheritMaterialExtruded (bool): Only the extruded face inherits material of the original 2D shape.
 			The default value is False.
 	"""
 	return context.factory["Extrude"](depth, *parts, **kwargs)

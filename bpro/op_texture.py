@@ -33,16 +33,7 @@ class Texture(Operator):
             if material:
                 materialIndex = materialRegistry.getMaterialIndex(name)
             else:
-                blenderTexture = bpy.data.textures.new(name, type = "IMAGE")
-                blenderTexture.image = bpy.data.images.load(path)
-                blenderTexture.use_alpha = True
-                
-                material = bpy.data.materials.new(name)
-                textureSlot = material.texture_slots.add()
-                textureSlot.texture = blenderTexture
-                textureSlot.texture_coords = "UV"
-                textureSlot.uv_layer = self.layer
-                materialRegistry.setMaterial(name, material)
+                materialRegistry.createMaterial(name, (self,))
                 materialIndex = materialRegistry.getMaterialIndex(name)
                 
             shape.face.material_index = materialIndex

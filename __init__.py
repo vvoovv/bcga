@@ -97,6 +97,7 @@ class Pro(bpy.types.Operator):
 	collectionColor = bpy.props.CollectionProperty(type=CustomColorProperty)
 	
 	def invoke(self, context, event):
+		proContext.blenderContext = context
 		ruleFile = getRuleFile(context.scene.ruleFile, self)
 		if ruleFile:
 			module,params = bpro.apply(ruleFile)
@@ -120,6 +121,7 @@ class Pro(bpy.types.Operator):
 		return {"FINISHED"}
 	
 	def execute(self, context):
+		proContext.blenderContext = context
 		paramCounter = 0
 		for param in self.params:
 			param = param[1]
@@ -149,6 +151,7 @@ class Bake(bpy.types.Operator):
 	bl_options = {"REGISTER", "UNDO"}
 	
 	def execute(self, context):
+		proContext.blenderContext = context
 		bpy.ops.object.select_all(action="DESELECT")
 		# remember the original object, it will be used for low poly model
 		lowPolyObject = context.object
