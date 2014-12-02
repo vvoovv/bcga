@@ -4,8 +4,6 @@ import bpy
 from pro import context
 from pro.base import Operator
 
-from .material import setPreviewTexture
-
 
 class Texture(Operator):
     
@@ -26,16 +24,16 @@ class Texture(Operator):
         else:
             shape.setUV(self.layer, self)
             # now deal with the related material
-            materialRegistry = context.materialRegistry
+            materialManager = context.materialManager
             path = self.path
             name = os.path.basename(path)
-            material = materialRegistry.getMaterial(name)
+            material = materialManager.getMaterial(name)
             if material:
-                materialIndex = materialRegistry.getMaterialIndex(name)
+                materialIndex = materialManager.getMaterialIndex(name)
             else:
-                materialRegistry.createMaterial(name, (self,))
-                materialIndex = materialRegistry.getMaterialIndex(name)
+                materialManager.createMaterial(name, (self,))
+                materialIndex = materialManager.getMaterialIndex(name)
                 
             shape.face.material_index = materialIndex
             # set preview texture
-            setPreviewTexture(shape, materialIndex)
+            materialManager.setPreviewTexture(shape, materialIndex)

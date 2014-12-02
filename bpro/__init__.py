@@ -3,7 +3,7 @@ import bpy, bmesh
 
 from pro import context
 
-from .material import MaterialRegistry
+from .material import MaterialManager
 
 from .util import VertexRegistry
 
@@ -45,17 +45,20 @@ def apply(ruleFile, startRule="Lot"):
 	mesh.uv_textures.new(Texture.defaultLayer)
 	# all operations will be done in the EDIT mode
 	bpy.ops.object.mode_set(mode="EDIT")
+	# initialize the context
+	context.init()
 	# setting bmesh instance
 	bm = bmesh.from_edit_mesh(mesh)
 	context.addAttribute("bm", bm)
 	# list of unused faces for removal
 	context.addAttribute("facesForRemoval", [])
 	# set up the material registry
-	context.addAttribute("materialRegistry", MaterialRegistry())
+	context.addAttribute("materialManager", MaterialManager())
 	# set up vertex registry to ensure vertex uniqueness
 	context.addAttribute("vertexRegistry", VertexRegistry())
-	# initialize the context
-	context.init(getInitialShape(bm))
+	
+	# push the initial state with the initial shape to the execution stack
+	context.pushState(shape=getInitialShape(bm))
 	
 	if isinstance(ruleFile, str):
 		module = getModule(ruleFile)

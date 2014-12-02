@@ -182,8 +182,6 @@ class Context:
 	def reset(self):
 		# the factory stores references to the basic classes
 		self.factory = {}
-		# implementation specific attributes
-		self.attrs = []
 	
 	def __call__(self):
 		self.reset()
@@ -212,14 +210,14 @@ class Context:
 	def registerParam(self, param):
 		self.params.append(param)
 		
-	def init(self, shape):
+	def init(self):
+		# implementation specific attributes
+		self.attrs = []
 		# stack to track branching
 		self.stack = []
 		self.deferreds = []
 		# the list of params
 		self.params = []
-		# push the initial state with the initial shape to the execution stack
-		self.pushState(shape=shape)
 	
 	def prepare(self):
 		"""The method does all necessary preparations for a rule evaluation."""

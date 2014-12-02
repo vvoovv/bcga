@@ -4,7 +4,6 @@ from pro import x, y
 from pro import front, back, left, right, top, bottom, side, all
 from pro.op_split import calculateSplit
 from .util import rotation_zNormal_xHorizontal, getEndVertex, verticalNormalThreshold, zAxis
-from .material import setPreviewTexture
 
 # normal threshold for the Shape3d.comp method to classify if the face is horizontal or vertical
 horizontalFaceThreshold = 0.70711 # math.sqrt(0.5)
@@ -148,7 +147,7 @@ class Shape2d:
             for i in range(sideIndex, numShapes):
                 shape = shapes[i]
                 shape.face.material_index = materialIndex
-                setPreviewTexture(shape, materialIndex)
+                context.materialManager.setPreviewTexture(shape, materialIndex)
 
         # perform some cleanup
         self.clearUVlayers()
@@ -349,7 +348,7 @@ class Rectangle(Shape2d):
         # finally, inherit the material_index from the parent shape and set preview texture
         for cut in cuts:
             cut[1].face.material_index = materialIndex
-            setPreviewTexture(cut[1], materialIndex)
+            context.materialManager.setPreviewTexture(cut[1], materialIndex)
         # perform some cleanup
         self.clearUVlayers()
         return cuts
@@ -398,6 +397,7 @@ class Rectangle(Shape2d):
     
     def extrude2(self, parts, defs):
         from .op_delete import Delete
+        materialManager = context.materialManager
         def inheritMaterial(shape, loop1, loop2, bm):
             """A helper function for material inheritance"""
             loops = shape.face.loops
@@ -424,7 +424,7 @@ class Rectangle(Shape2d):
                 shape.addUVlayer(layer, self.uvLayers[layer])
             # inherit material_index and set preview texture
             shape.face.material_index = materialIndex
-            setPreviewTexture(shape, materialIndex)
+            materialManager.setPreviewTexture(shape, materialIndex)
             loop1 = loops[1] if axis == x else loops[3]
             loop2 = loops[2] if axis == x else loops[2]
             return loop1, loop2
@@ -548,7 +548,7 @@ class Rectangle(Shape2d):
                     shape.setUV(layer, self.uvLayers[layer])
                 # inherit material_index and set preview texture
                 shape.face.material_index = materialIndex
-                setPreviewTexture(shape, materialIndex)
+                materialManager.setPreviewTexture(shape, materialIndex)
             if _cap1:
                 # _cape1 is the rule for shape
                 shapesWithRule.append((shape, _cap1))
@@ -563,7 +563,7 @@ class Rectangle(Shape2d):
                     shape.setUV(layer, self.uvLayers[layer])
                 # inherit material_index and set preview texture
                 shape.face.material_index = materialIndex
-                setPreviewTexture(shape, materialIndex)
+                materialManager.setPreviewTexture(shape, materialIndex)
             if _cap2:
                 # _cape2 is the rule for shape
                 shapesWithRule.append((shape, _cap2))
