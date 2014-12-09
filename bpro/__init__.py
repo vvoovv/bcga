@@ -20,6 +20,7 @@ from pro.base import Param
 
 from .shape import getInitialShape
 
+from .join import JoinManager
 
 def buildFactory():
 	factory = context.factory
@@ -56,6 +57,8 @@ def apply(ruleFile, startRule="Lot"):
 	context.addAttribute("materialManager", MaterialManager())
 	# set up vertex registry to ensure vertex uniqueness
 	context.addAttribute("vertexRegistry", VertexRegistry())
+	# set a constructor for join manager, it may be replaced by actual instance of the join manager
+	context.addAttribute("joinManager", JoinManager)
 	
 	# push the initial state with the initial shape to the execution stack
 	context.pushState(shape=getInitialShape(bm))

@@ -66,7 +66,11 @@ class Operator:
 			operator.value = value
 		return operator
 	
-	def execute(self, *args):
+	def execute(self):
+		pass
+	
+	def execute_join(self, band):
+		""" This method should be called for each band of rectangles after join(..) finished its procession"""
 		pass
 	
 	def __call__(self):
@@ -230,10 +234,12 @@ class Context:
 		self.deferreds.append((shape, deferredOperator))
 	
 	def executeDeferred(self):
+		self.joinManager = self.joinManager()
 		for entry in self.deferreds:
 			# entry[1] is operator
 			# entry[0] is shape
-			entry[1].resolve(entry[0])
+			entry[1].resolve(entry)
+		self.joinManager.finalize()
 
 
 def shape():

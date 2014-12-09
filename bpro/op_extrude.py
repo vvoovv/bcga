@@ -10,3 +10,6 @@ class Extrude(pro.op_extrude.Extrude):
 			decompose_execute(shape, self.parts)
 		else:
 			state.shape = shape
+	
+	def execute_join(self, band):
+		band.extrude()

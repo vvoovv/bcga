@@ -15,6 +15,9 @@ def extrude(depth, *parts, **kwargs):
 			The default value is False.
 		inheritMaterialExtruded (bool): Only the extruded face inherits material of the original 2D shape.
 			The default value is False.
+		alwaysAlongOriginal (bool): How the first loop of each rectangular side connecting original and extruded 2D shapes is
+		positioned. This option is relevant when extrude(..) is followed by join(..)
+			The default value is False
 	"""
 	return context.factory["Extrude"](depth, *parts, **kwargs)
 
@@ -24,6 +27,7 @@ class Extrude(ComplexOperator):
 		self.inheritMaterialSide = False
 		self.inheritMaterialExtruded = False
 		self.keepOriginal = False
+		self.alwaysAlongOriginal = False
 		self.parts = None
 		# apply kwargs
 		for k in kwargs:
