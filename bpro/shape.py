@@ -61,7 +61,7 @@ class Shape2d:
         # perform translation along the extrudedFace normal
         bmesh.ops.translate(bm, verts=extrudedFace.verts, vec=depth*extrudedFace.normal)
         
-        # Find a face connecting originalFace and extrudedFace, that contains the original first edge.
+        # Find a face connecting originalFace and extrudedFace, that contains the original first loop.
         # The normal for the original face has been reversed, so self.firstLoop doesn't contain
         # the original edge anymore 
         # The original first edge:
@@ -74,7 +74,7 @@ class Shape2d:
             _loops = oppositeLoop.link_loops
             if len(_loops)==1 and _loops[0].face==extrudedFace:
                 break
-        extrudedFirstEdge = _loops[0]
+        extrudedFirstLoop = _loops[0]
         
         # now we have a 3D shape
         # build a list of 2D shapes (faces) that costitute the 3D shape
@@ -108,7 +108,7 @@ class Shape2d:
                 # as the first loop for the rectangle to be created
                 # If z1==z2 (i.e. the rectangle is horizontal)
                 # choose the opposite loop as the first loop for the rectangle to be created
-                if z1==z2:
+                if extrude.alwaysAlongOriginal or z1==z2:
                     _firstLoop = loop
                 elif z1<z2:
                     _firstLoop = loop.link_loop_next
@@ -151,7 +151,7 @@ class Shape2d:
 
         # perform some cleanup
         self.clearUVlayers()
-        return Shape3d(shapes, extrudedFirstEdge, niche=True if depth<0 else False)
+        return Shape3d(shapes, extrudedFirstLoop, niche=True if depth<0 else False)
 
     def getMatrix(self):
         """
@@ -170,7 +170,7 @@ class Shape2d:
         """
         Returns the normal to the shape's face.
         A newly created face (instance of BMFace) has a zero normal
-        So we have to calculated explicitly
+        So we have to calculated it explicitly
         """
         loop = self.firstLoop
         v1 = getEndVertex(loop).co - loop.vert.co

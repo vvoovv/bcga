@@ -46,7 +46,7 @@ def rotation_zNormal_xHorizontal(firstLoop, normal=None, reverse=False):
         rotationMatrix[0][0:2] = cos, sin
         rotationMatrix[1][0:2] = -sin, cos
     elif normal[2]<-verticalNormalThreshold:
-        # Normal is aligned along the positive direction of z-axis of the global coordinate system
+        # Normal is aligned along the negative direction of z-axis of the global coordinate system
         # The rotation axis lies in the xy plane of the global coordinate system.
         # The rotation axis is the bisecting vector between xAxis and firstEdge
         # The rotation angle is equal to 180 degrees
