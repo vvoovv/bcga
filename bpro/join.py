@@ -148,14 +148,13 @@ class Band:
         self.firstLoop = firstLoop
     
     def extrude(self):
-        print("processing loop:", self.end1, self.end2)
         bm = context.bm
         depth = self.operator.depth
         # inset or offset?
         inset = True if depth>0 else False
         
         loop = self.firstLoop
-        normal = depth * loop.face.normal
+        normal = loop.face.normal
         # lower vertex (along the first loop)
         vert1 = loop.vert.co
         # neighbor of vert1 to the right
@@ -169,19 +168,19 @@ class Band:
             # the special case of a closed band of rectangles
             # previous loop
             _loop = loop.link_loop_prev.link_loops[0].link_loop_prev
-            vec2 = _loop.vert.co - vert1
-            vec2.normalize()
-            # cosine and sine of the angle between vec2 and vec1
-            cos = vec2.dot(vec1)
-            sin = vec2.cross(vec1).length
-            _vertEx1 = vert1 + normal - (depth+depth*cos)/sin*vec1
+            vec2 = vec1
+            vec1 = vert1 - _loop.vert.co
+            vec1.normalize()
+            _vertEx1 = getInset(vert1, vec1, vec2, depth, depth, _loop.face.normal, axis)
             _vertEx2 = bm.verts.new(_vertEx1 + axis)
             _vertEx1 = bm.verts.new(_vertEx1)
             prevVertEx1 = _vertEx1
             prevVertEx2 = _vertEx2
+            # restore vec1
+            vec1 = vec2
         else:
             # extruded counterpart of vert1
-            prevVertEx1 = vert1 + normal
+            prevVertEx1 = vert1 + depth*normal
             # upper vertex (upper neighbor of vert1)
             prevVertEx2 = bm.verts.new(prevVertEx1 + axis)
             prevVertEx1 = bm.verts.new(prevVertEx1)
@@ -202,11 +201,7 @@ class Band:
             # vector from vert to vert2
             vec2 = vert2 - vert
             vec2.normalize()
-            # cosine and sine of the angle between -vec1 and vec2
-            cos = -(vec1.dot(vec2))
-            sin = vec1.cross(vec2).length
-            # extruded counterpart of vert
-            vertEx1 = vert + normal + (depth+depth*cos)/sin*vec1
+            vertEx1 = getInset(vert, vec1, vec2, depth, depth, normal, axis)
             vertEx2 = bm.verts.new(vertEx1 + axis)
             vertEx1 = bm.verts.new(vertEx1)
             createRectangle((prevVertEx1, vertEx1, vertEx2, prevVertEx2))
@@ -219,7 +214,7 @@ class Band:
             vert = vert2
             prevVertEx1 = vertEx1
             prevVertEx2 = vertEx2
-            normal = depth * loop.face.normal
+            normal = loop.face.normal
             
             index = loop.face.index
         
@@ -227,7 +222,7 @@ class Band:
             vertEx1 = _vertEx1
             vertEx2 = _vertEx2
         else:
-            vertEx1 = vert + normal
+            vertEx1 = vert + depth*normal
             vertEx2 = bm.verts.new(vertEx1 + axis)
             vertEx1 = bm.verts.new(vertEx1)
             # closing rectangle
@@ -238,3 +233,23 @@ class Band:
         createRectangle((_loop.vert, _loopNext.vert, vertEx1, prevVertEx1))
         # upper cap
         createRectangle((_loopNext.link_loop_next.vert, _loop.link_loop_prev.vert, prevVertEx2, vertEx2))
+
+
+def getInset(vert, vec1, vec2, depth1, depth2, normal, axis):
+    """
+    A helper function to calculate inset (depth>0) or offset(depth<0)
+    """
+    # cross product between vec1 and vec2
+    cross = vec1.cross(vec2)
+    # To check if have a concave angle (>180) between vec1 and vec2,
+    # we calculate dot product between cross and axis
+    # If the dot product is positive, we have a convex angle (<180), otherwise concave (>180)
+    dot = cross.dot(axis)
+    # cosine of the angle between -vec1 and vec2
+    # sine of the angle between -vec1 and vec2
+    sin = cross.length
+    cos = -(vec1.dot(vec2))
+    if dot<0:
+        sin = -sin
+    # extruded counterpart of vert
+    return vert + depth1*normal + (depth1+depth2*cos)/sin*vec1
