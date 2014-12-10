@@ -14,7 +14,7 @@ class JoinManager:
         self.shapes = {}
     
     def process(self, deferred):
-        # TODO: process firstLoop correctly if join.neighbor==top or join.neighbor==left
+        # TODO: process firstLoop correctly if join.neighbor==top or join.neighbor==bottom
         shape = deferred[0]
         join = deferred[1]
         operator = join.operator
@@ -38,7 +38,6 @@ class JoinManager:
         
         if face in ends1:
             band = ends1[face]
-            # if nghbr==right or nghbr==top: this case means two rectangles pointing to each other: nothing to do here
             if nghbr==left or nghbr==bottom:
                 if neighbor == band.end2:
                     # got a closed band
@@ -48,9 +47,12 @@ class JoinManager:
                     self.merge(ends2[neighbor], band)
                 else:
                     self.extendLeft(band, neighbor, operator)
+            elif not band.operator and operator:
+                # If nghbr==right or nghbr==top: this case means two rectangles pointing to each other.
+                # Perform here operator check only
+                band.operator = operator
         elif face in ends2:
-            band = ends2[face]
-            # if nghbr==left or nghbr==bottom: this case means two rectangles pointing to each other: nothing to do here   
+            band = ends2[face]   
             if nghbr==right or nghbr==top:
                 if neighbor == band.end1:
                     # got a closed band
@@ -60,6 +62,10 @@ class JoinManager:
                     self.merge(band, ends2[neighbor])
                 else:
                     self.extendRight(band, neighbor, operator)
+            elif not band.operator and operator:
+                # If nghbr==left or nghbr==bottom: this case means two rectangles pointing to each other.
+                # Perform here operator check only
+                band.operator = operator
         elif neighbor in ends1:
             self.extendLeft(ends1[neighbor], face, operator)
         elif neighbor in ends2:
@@ -184,6 +190,9 @@ class Band:
 
         index = self.end1
         while True:
+            context.facesForRemoval.append(loop.face)
+            _loop = loop
+            _loopNext = _loop.link_loop_next
             if index==self.end2:
                 break
             # next loop
@@ -201,6 +210,10 @@ class Band:
             vertEx2 = bm.verts.new(vertEx1 + axis)
             vertEx1 = bm.verts.new(vertEx1)
             createRectangle((prevVertEx1, vertEx1, vertEx2, prevVertEx2))
+            # lower cap
+            createRectangle((_loop.vert, _loopNext.vert, vertEx1, prevVertEx1))
+            # upper cap
+            createRectangle((_loopNext.link_loop_next.vert, _loop.link_loop_prev.vert, prevVertEx2, vertEx2))
             
             vec1 = vec2
             vert = vert2
@@ -221,3 +234,7 @@ class Band:
             loop = loop.link_loop_next
             createRectangle((vertEx1, loop.vert, loop.link_loop_next.vert, vertEx2))
         createRectangle((prevVertEx1, vertEx1, vertEx2, prevVertEx2))
+        # lower cap
+        createRectangle((_loop.vert, _loopNext.vert, vertEx1, prevVertEx1))
+        # upper cap
+        createRectangle((_loopNext.link_loop_next.vert, _loop.link_loop_prev.vert, prevVertEx2, vertEx2))
