@@ -150,8 +150,6 @@ class Band:
     def extrude(self):
         bm = context.bm
         depth = self.operator.depth
-        # inset or offset?
-        inset = True if depth>0 else False
         
         loop = self.firstLoop
         normal = loop.face.normal
@@ -237,7 +235,18 @@ class Band:
 
 def getInset(vert, vec1, vec2, depth1, depth2, normal, axis):
     """
-    A helper function to calculate inset (depth>0) or offset(depth<0)
+    A helper function to calculate inset (depth>0) or offset(depth<0) for two edges with a common vertex
+    Both depth1 and depth2 must be either positive or negative.
+    
+    Args:
+        vert (mathutils.Vector): Original vertex to which an inset or an offset is applied
+        vec1 (mathutils.Vector): Vector ending at vert; it defines the first edge
+        vec2 (mathutils.Vector): Vector starting at vert; it defines the second edge
+        depth1 (float): Depth of inset (depth1>0) or offset (depth1<0)
+        depth2 (float): Depth of inset (depth2>0) or offset (depth2<0)
+        normal (mathutils.Vector): Normal to vec1 pointing outside; it defines the direction of inset or offset
+        axis (mathutils.Vector): Right hand normal to a vec1 and vec2; it is needed to check if edges defined
+            by vec1 and vec2 form convex or concave angle
     """
     # cross product between vec1 and vec2
     cross = vec1.cross(vec2)
