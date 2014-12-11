@@ -1,6 +1,7 @@
 from pro import right, left, top, bottom
 from pro import context
 from .shape import createRectangle
+from .util import zero
 
 class JoinManager:
     def __init__(self):
@@ -59,7 +60,7 @@ class JoinManager:
                     self.closeBand(band)
                 elif neighbor in ends1:
                     # merge two bands
-                    self.merge(band, ends2[neighbor])
+                    self.merge(band, ends1[neighbor])
                 else:
                     self.extendRight(band, neighbor, operator)
             elif not band.operator and operator:
@@ -257,6 +258,8 @@ def getInset(vert, vec1, vec2, depth1, depth2, normal, axis):
     # cosine of the angle between -vec1 and vec2
     # sine of the angle between -vec1 and vec2
     sin = cross.length
+    if sin<zero:
+        return vert + depth1*normal
     cos = -(vec1.dot(vec2))
     if dot<0:
         sin = -sin

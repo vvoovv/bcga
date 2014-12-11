@@ -5,6 +5,8 @@ from pro import context
 xAxis = mathutils.Vector((1, 0, 0))
 zAxis = mathutils.Vector((0, 0, 1))
 
+zero = 0.000001
+
 verticalNormalThreshold = 0.999
 
 def rotation_zNormal_xHorizontal(firstLoop, normal=None, reverse=False):
