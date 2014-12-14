@@ -7,11 +7,13 @@ class Join(ComplexOperator):
     def __init__(self, neighbor, *args, **kwargs):
         self.neighbor = neighbor
         self.operator = None
-        if len(args)==1:
+        self.args = None
+        numArgs = len(args)
+        if numArgs==1:
             operator = args[0]
             if isinstance(operator, Operator) and not hasattr(operator, "value"):
                 self.operator = operator
-        if not self.operator:
+        if not self.operator and numArgs:
             self.args = args
         self.kwargs = kwargs
         numOperators = 0

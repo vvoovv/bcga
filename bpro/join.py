@@ -1,5 +1,6 @@
 from pro import right, left, top, bottom
 from pro import context
+from pro.base import Operator
 from .shape import createRectangle
 from .util import zero
 
@@ -150,7 +151,6 @@ class Band:
     
     def extrude(self):
         bm = context.bm
-        depth = self.operator.depth
         
         loop = self.firstLoop
         normal = loop.face.normal
@@ -170,7 +170,8 @@ class Band:
             vec2 = vec1
             vec1 = vert1 - _loop.vert.co
             vec1.normalize()
-            _vertEx1 = getInset(vert1, vec1, vec2, depth, depth, _loop.face.normal, axis)
+            
+            _vertEx1 = getInset(vert1, vec1, vec2, self.getDepth(_loop), self.getDepth(loop), _loop.face.normal, axis)
             _vertEx2 = bm.verts.new(_vertEx1 + axis)
             _vertEx1 = bm.verts.new(_vertEx1)
             prevVertEx1 = _vertEx1
@@ -179,7 +180,7 @@ class Band:
             vec1 = vec2
         else:
             # extruded counterpart of vert1
-            prevVertEx1 = vert1 + depth*normal
+            prevVertEx1 = vert1 + self.getDepth(loop)*normal
             # upper vertex (upper neighbor of vert1)
             prevVertEx2 = bm.verts.new(prevVertEx1 + axis)
             prevVertEx1 = bm.verts.new(prevVertEx1)
@@ -200,7 +201,7 @@ class Band:
             # vector from vert to vert2
             vec2 = vert2 - vert
             vec2.normalize()
-            vertEx1 = getInset(vert, vec1, vec2, depth, depth, normal, axis)
+            vertEx1 = getInset(vert, vec1, vec2, self.getDepth(_loop), self.getDepth(loop), normal, axis)
             vertEx2 = bm.verts.new(vertEx1 + axis)
             vertEx1 = bm.verts.new(vertEx1)
             createRectangle((prevVertEx1, vertEx1, vertEx2, prevVertEx2))
@@ -221,7 +222,7 @@ class Band:
             vertEx1 = _vertEx1
             vertEx2 = _vertEx2
         else:
-            vertEx1 = vert + depth*normal
+            vertEx1 = vert + self.getDepth(loop)*normal
             vertEx2 = bm.verts.new(vertEx1 + axis)
             vertEx1 = bm.verts.new(vertEx1)
             # closing rectangle
@@ -232,6 +233,21 @@ class Band:
         createRectangle((_loop.vert, _loopNext.vert, vertEx1, prevVertEx1))
         # upper cap
         createRectangle((_loopNext.link_loop_next.vert, _loop.link_loop_prev.vert, prevVertEx2, vertEx2))
+    
+    def getDepth(self, loop):
+        index = loop.face.index
+        if index in self.shapes:
+            join = self.shapes[index][1]
+            operator = join.operator
+            if operator:
+                depth = operator.depth
+            elif join.args and not isinstance(join.args[0], Operator):
+                depth = join.args[0]
+            else:
+                depth = self.operator.depth
+        else:
+            depth = self.operator.depth
+        return depth
 
 
 def getInset(vert, vec1, vec2, depth1, depth2, normal, axis):
@@ -264,4 +280,4 @@ def getInset(vert, vec1, vec2, depth1, depth2, normal, axis):
     if dot<0:
         sin = -sin
     # extruded counterpart of vert
-    return vert + depth1*normal + (depth1+depth2*cos)/sin*vec1
+    return vert + depth1*normal + (depth2+depth1*cos)/sin*vec1
