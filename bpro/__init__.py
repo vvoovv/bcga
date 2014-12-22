@@ -15,6 +15,7 @@ from .op_color import Color
 from .op_texture import Texture
 from .op_delete import Delete
 from .op_join import Join
+from .op_hip_roof import HipRoof
 
 from pro.base import Param
 
@@ -32,6 +33,7 @@ def buildFactory():
 	factory["Texture"] = Texture
 	factory["Delete"] = Delete
 	factory["Join"] = Join
+	factory["HipRoof"] = HipRoof
 
 def apply(ruleFile, startRule="Lot"):
 	# apply all transformations to the active Blender object

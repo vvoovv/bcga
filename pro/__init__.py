@@ -13,6 +13,8 @@ from .op_texture import texture
 from .op_delete import delete
 from .op_join import join
 
+from .op_hip_roof import hip_roof
+
 from .base import flt, rel
 from .base import shape
 from .base import param, random
