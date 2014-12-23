@@ -17,5 +17,5 @@ class HipRoof(ComplexOperator):
             self.overhang = True
             self.overhangSize = args[1]
         super().__init__(0)
-            
+
         

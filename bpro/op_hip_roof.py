@@ -9,6 +9,8 @@ class HipRoof(pro.op_hip_roof.HipRoof):
         roof = Roof(face.verts, face.normal)
         if self.overhang:
             roof.inset(-self.overhangSize)
+        if self.fascia:
+            roof.translate(self.fasciaSize)
         roof.roof(self.pitch)
         shape.delete()
         

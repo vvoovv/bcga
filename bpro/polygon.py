@@ -138,6 +138,30 @@ class Roof(Polygon):
     def inset(self, *distances, **kwargs):
         translate = kwargs["height"]*self.axis if "height" in kwargs else None
         super().inset(*distances, translate=translate)
+    
+    def translate(self, distance, axis=None):
+        translate = distance*(axis if axis else self.axis)
+        corners = self.corners
+        corner = corners[-1]
+        prevVert1 = corner._vert
+        _vert1 = prevVert1
+        corner.vert += translate
+        corner._vert = context.bm.verts.new(corner.vert)
+        prevVert2 = corner._vert
+        _vert2 = prevVert2
+        i = 0
+        numCorners = self.numEdges-1
+        while i<numCorners:
+            corner = corners[i]
+            vert1 = corner._vert
+            corner.vert += translate
+            corner._vert = context.bm.verts.new(corner.vert)
+            vert2 = corner._vert
+            context.bm.faces.new((prevVert1, vert1, vert2, prevVert2))
+            prevVert1 = vert1
+            prevVert2 = vert2
+            i += 1
+        context.bm.faces.new((prevVert1, _vert1, _vert2, prevVert2))
 
 
 class Corner:
@@ -316,45 +340,59 @@ class Sequence:
             events.insert(lo, event)
     
     def removeEvent(self, event, lo=0):
-        events = self.events
-        hi = len(events)
-        while True:
-            mid = (lo+hi)//2
-            if event == events[mid]:
-                break
-            elif event.t < events[mid].t:
-                hi = mid
-            else:
-                lo = mid+1
-        del events[mid]
+        if event.container:
+            event.container.remove(event)
+        else:
+            events = self.events
+            hi = len(events)
+            while True:
+                mid = (lo+hi)//2
+                if event == events[mid]:
+                    break
+                elif event.t < events[mid].t:
+                    hi = mid
+                else:
+                    lo = mid+1
+            del events[mid]
 
 
 class EventContainer:
     def __init__(self, event1, event2):
-        self.events = [event1, event2]
+        self.container = None
+        self.events = []
         self.t = event1.t
         # init clusters
         self.clusters = []
         self.numClusters = 0
-        self.clusterAssign(event1)
-        self.clusterAssign(event2)
+        self.append(event1)
+        self.append(event2)
     
     def resolve(self, sequence):
         i = 0
         while i<self.numClusters:
-            vert = self.clusters[i]
-            self.clusters[i] = context.bm.verts.new(vert)
+            vert = self.clusters[i][0]
+            self.clusters[i][0] = context.bm.verts.new(vert)
             i += 1
         for event in self.events:
-            event.resolve(sequence, self.t, self.clusters[event.cluster])
+            event.resolve(sequence, self.t, event.cluster[0])
     
     def append(self, event):
         self.clusterAssign(event)
         self.events.append(event)
+        event.container = self
+    
+    def remove(self, event):
+        self.events.remove(event)
+        cluster = event.cluster
+        cluster[1] -= 1
+        if cluster[1]==0:
+            # remove cluster
+            self.clusters.remove(cluster)
     
     def clusterCreate(self, event):
-        event.cluster = self.numClusters
-        self.clusters.append(event.vert)
+        cluster = [event.vert, 1]
+        event.cluster = cluster
+        self.clusters.append(cluster)
         self.numClusters += 1
     
     def clusterAssign(self, event):
@@ -370,10 +408,12 @@ class EventContainer:
             self.clusterCreate(event)
     
     def clusterTest(self, event, i):
-        return (self.clusters[i]-event.vert).length_squared <= distanceTolerance2
+        return (self.clusters[i][0]-event.vert).length_squared <= distanceTolerance2
     
     def clusterAdd(self, event, i):
-        event.cluster = i
+        cluster = self.clusters[i]
+        event.cluster = cluster
+        cluster[1] += 1
     
     def __str__(self):
         return str(self.t) + ": " + str(len(self.events)) + " events"
@@ -385,6 +425,7 @@ class EventEdge:
         self.t = t
         self.edge = edge
         self.vert = vert
+        self.container = None
     
     def resolve(self, sequence, t=None, vert=None):
         edge = self.edge
