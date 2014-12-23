@@ -312,6 +312,7 @@ class Sequence:
         
     
     def addEvent(self, event, lo=0):
+        _lo = lo
         t = event.t
         events = self.events
         # implementing bisect.insort_right(..)
@@ -330,7 +331,7 @@ class Sequence:
                     events[lo] = eventContainer
                 lo = -1
         # check if we have basically the same timestamp as events[lo-1]
-        if lo > 0:
+        if lo>_lo:
             if t-events[lo-1].t <= timeTolerance:
                 eventContainer = events[lo-1].append(event)
                 if eventContainer:
@@ -340,8 +341,11 @@ class Sequence:
             events.insert(lo, event)
     
     def removeEvent(self, event, lo=0):
-        if event.container:
-            event.container.remove(event)
+        container = event.container
+        if container:
+            container.remove(event)
+            if container.numClusters == 0:
+                self.removeEvent(container, lo)
         else:
             events = self.events
             hi = len(events)
@@ -443,7 +447,7 @@ class EventEdge:
         corner.t = t
         # Mark the newly create edge, so we know that the edge has the correct vertex (vert).
         # We don't need to update vert later
-        corner.event = self
+        corner.event = self.container if self.container else self
         if edge.leftVerts[-1] != vert and edge.rightVerts[-1] != vert:
             edge.leftVerts.append(vert)
         sequence.numCorners -= 1
@@ -455,9 +459,10 @@ class EventEdge:
         edge2 = edge.corner2.edge2
         edge2.corner1 = corner
         edge2.dirty = True
-        # if edge1 != edge2: # this condition isn't enough!
-        if edge2.leftVerts[-1] != vert and edge1.rightVerts[-1] != vert:
+        
+        if edge1.rightVerts[-1] != vert and edge1 != edge2:
             edge1.rightVerts.append(vert)
+        if edge2.leftVerts[-1] != vert and edge1 != edge2:
             edge2.leftVerts.append(vert)
             
         # update the first edge of sequence
