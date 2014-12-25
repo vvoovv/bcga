@@ -7,7 +7,7 @@ zAxis = mathutils.Vector((0, 0, 1))
 
 zero = 0.000001
 
-verticalNormalThreshold = 0.999
+unityThreshold = 0.999
 
 def rotation_zNormal_xHorizontal(firstLoop, normal=None, reverse=False):
     """
@@ -35,7 +35,7 @@ def rotation_zNormal_xHorizontal(firstLoop, normal=None, reverse=False):
     
     # First consider special cases:
     # when normal is aligned along z-axis of the global coordinate system
-    if normal[2]>verticalNormalThreshold:
+    if normal[2]>unityThreshold:
         # Normal is aligned along the positive direction of z-axis of the global coordinate system.
         # The rotation axis is aligned along the negative direction of z-axis of the global coordinate system.
         
@@ -47,7 +47,7 @@ def rotation_zNormal_xHorizontal(firstLoop, normal=None, reverse=False):
         # rotation matrix from firstEdge to xAxis with -zAxis as the rotation axis
         rotationMatrix[0][0:2] = cos, sin
         rotationMatrix[1][0:2] = -sin, cos
-    elif normal[2]<-verticalNormalThreshold:
+    elif normal[2]<-unityThreshold:
         # Normal is aligned along the negative direction of z-axis of the global coordinate system
         # The rotation axis lies in the xy plane of the global coordinate system.
         # The rotation axis is the bisecting vector between xAxis and firstEdge
@@ -67,11 +67,16 @@ def rotation_zNormal_xHorizontal(firstLoop, normal=None, reverse=False):
         # Find intersection of the shape's plane and xy-plane of the global coordinate system.
         # It gives us the direction of the x-axis of the shape coordinate system.
         shapeX = zAxis.cross(normal)
+        shapeX.normalize()
         # The rotation axis is the intersection of two bisecting planes
         # 1) Find the normal to the bisecting plane between zAxis and normal to the shape
         bisectPlaneNormal1 = shapeX.cross(zAxis + normal)
         # 2) Find the normal to the bisecting plane between xAxis and shapeX
-        bisectPlaneNormal2 = zAxis.cross(xAxis + shapeX)
+        if shapeX[0]<-unityThreshold:
+            # the special case shapeX==-xAxis
+            bisectPlaneNormal2 = xAxis
+        else:
+            bisectPlaneNormal2 = zAxis.cross(xAxis + shapeX)
         # Intersection of the two bisecting planes gives us the direction of the rotation axis:
         axis = bisectPlaneNormal1.cross(bisectPlaneNormal2)
         axis.normalize()

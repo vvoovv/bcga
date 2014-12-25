@@ -2,6 +2,8 @@ import math
 import bpy, bmesh
 from pro import context
 
+from .shape import Shape2d
+
 from .util import zero
 
 timeTolerance = 0.0001
@@ -83,6 +85,8 @@ class Polygon:
             context.bm.faces.new((prevVert1, _vert1, _vert2, prevVert2))
             
     def straightSkeleton(self, getVert=None):
+        # result faces
+        self.faces = []
         sequences = {}
         seq = Sequence(self.edges[0], len(self.corners), self.axis, getVert)
         sequences[seq.id] = seq
@@ -103,12 +107,14 @@ class Polygon:
                     del sequences[_id]
                     numSequences -= 1
 
-        # create roof faces
+        # create faces and Prokitektura shape for the straight skeleton
         for edge in self.edges:
-            face = edge.leftVerts
-            face.reverse()
+            edge.leftVerts.reverse()
+            face = [edge.leftVerts.pop()]
             face += edge.rightVerts
-            context.bm.faces.new(face)
+            face += edge.leftVerts
+            face = context.bm.faces.new(face)
+            self.faces.append(Shape2d(face.loops[0]))
 
 
 class Roof(Polygon):

@@ -3,7 +3,7 @@ from pro import context
 from pro import x, y
 from pro import front, back, left, right, top, bottom, side, all
 from pro.op_split import calculateSplit
-from .util import rotation_zNormal_xHorizontal, getEndVertex, verticalNormalThreshold, zAxis
+from .util import rotation_zNormal_xHorizontal, getEndVertex, unityThreshold, zAxis
 
 # normal threshold for the Shape3d.comp method to classify if the face is horizontal or vertical
 horizontalFaceThreshold = 0.70711 # math.sqrt(0.5)
@@ -90,7 +90,7 @@ class Shape2d:
         shapes.append(constructor(oppositeLoop.link_loops[0]))
         startLoop = loop
         while True:
-            if extrudedFace.normal[2]>verticalNormalThreshold:
+            if extrudedFace.normal[2]>unityThreshold:
                 # first, consider the special case for the horizontal extrudedFace
                 shapes.append(Rectangle(loop))
             else:

@@ -1,4 +1,4 @@
-from .base import ComplexOperator, context, countOperator
+from .base import Operator, ComplexOperator, context, countOperator
 
 def hip_roof(*args, **kwargs):
     return context.factory["HipRoof"](*args, **kwargs)
@@ -8,19 +8,34 @@ class HipRoof(ComplexOperator):
     def __init__(self, *args, **kwargs):
         self.args = args
         self.overhangSize = None
-        self.fascia = False
+        self.fasciaSize = None
         if "fasciaSize" in kwargs:
-            self.fascia = True
             self.fasciaSize = kwargs["fasciaSize"]
-        super().__init__(0)
+        self.face = None
+        self.overhang = None
+        self.fascia = None
+        # find all definitions of operator and how many numerical values we have
+        numOperators = 0
+        i = len(args) - 1
+        while i>0:
+            arg = args[i]
+            if isinstance(arg, Operator):
+                setattr(self, arg.value, arg)
+                numOperators += 1
+            else:
+                self.numValues = i + 1
+                break
+            i -= 1
+
+        super().__init__(numOperators)
     
     def init(self, numEdges):
         args = self.args
-        numArgs = len(args)
+        numValues = self.numValues
         overhangs = None
-        if numArgs>2:
+        if numValues>2:
             pitches = []
-            if numArgs==2*numEdges:
+            if numValues==2*numEdges:
                 overhangs = []
             for i in range(numEdges):
                 if overhangs is not None:
@@ -32,7 +47,7 @@ class HipRoof(ComplexOperator):
                 overhangs = (self.overhangSize,)
         else:
             pitches = (args[0],)
-            if numArgs==2:
+            if numValues==2:
                 overhangs = (-args[1],)
             elif self.overhangSize:
                 overhangs = (self.overhangSize,)
