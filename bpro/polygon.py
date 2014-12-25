@@ -52,8 +52,8 @@ class Polygon:
         corners = self.corners
         distancePerEdge = False if len(distances)==1 else True
         if distancePerEdge:
-            distance1 = distances[-1]
-            distance2 = distances[0]
+            distance1 = distances[-2]
+            distance2 = distances[-1]
             i = 0
         else:
             distance1 = distances[0]
@@ -74,11 +74,13 @@ class Polygon:
             vert1 = corner._vert
             corner.inset(distance1, distance2, translate)
             vert2 = corner._vert
-            context.bm.faces.new((prevVert1, vert1, vert2, prevVert2))
+            if distance1!=0:
+                context.bm.faces.new((prevVert1, vert1, vert2, prevVert2))
             prevVert1 = vert1
             prevVert2 = vert2
             i += 1
-        context.bm.faces.new((prevVert1, _vert1, _vert2, prevVert2))
+        if not distancePerEdge or distances[-2]!=0:
+            context.bm.faces.new((prevVert1, _vert1, _vert2, prevVert2))
             
     def straightSkeleton(self, getVert=None):
         sequences = {}
@@ -145,7 +147,7 @@ class Roof(Polygon):
         corner = corners[-1]
         prevVert1 = corner._vert
         _vert1 = prevVert1
-        corner.vert += translate
+        corner.vert = corner.vert + translate
         corner._vert = context.bm.verts.new(corner.vert)
         prevVert2 = corner._vert
         _vert2 = prevVert2
@@ -154,7 +156,7 @@ class Roof(Polygon):
         while i<numCorners:
             corner = corners[i]
             vert1 = corner._vert
-            corner.vert += translate
+            corner.vert = corner.vert + translate
             corner._vert = context.bm.verts.new(corner.vert)
             vert2 = corner._vert
             context.bm.faces.new((prevVert1, vert1, vert2, prevVert2))
@@ -186,18 +188,19 @@ class Corner:
             self.cos = -(edge1.vec.dot(self.edge2.vec))
     
     def inset(self, d1, d2, translate=None):
-        vert = self.vert
-        edge1 = self.edge1
-        if self.isLine:
-            # extruded counterpart of self.vert
-            vert = vert + d1*edge1.normal
+        vert = None
+        if d1==0 and d2==0 and translate:
+            vert = self.vert + translate
         else:
+            vert = self.vert
+            edge1 = self.edge1
             # extruded counterpart of self.vert
             vert = vert - d1*edge1.normal - (d2+d1*self.cos)/self.sin*edge1.vec
-        if translate:
-            vert = vert + translate
-        self.vert = vert
-        self._vert = context.bm.verts.new(vert)
+            if translate:
+                vert = vert + translate
+        if vert:
+            self.vert = vert
+            self._vert = context.bm.verts.new(vert)
     
     def updateForEvent(self, event, sequence):
         dt = event.t - self.t

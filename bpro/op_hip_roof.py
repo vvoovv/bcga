@@ -6,11 +6,12 @@ class HipRoof(pro.op_hip_roof.HipRoof):
     def execute(self):
         shape = context.getState().shape
         face = shape.face
+        self.init(len(face.verts))
         roof = Roof(face.verts, face.normal)
-        if self.overhang:
-            roof.inset(-self.overhangSize)
+        if self.overhangs:
+            roof.inset(*self.overhangs)
         if self.fascia:
             roof.translate(self.fasciaSize)
-        roof.roof(self.pitch)
+        roof.roof(*self.pitches)
         shape.delete()
         

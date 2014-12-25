@@ -87,7 +87,7 @@ def apply(ruleFile, startRule="Lot"):
 	# remove unused faces from context.facesForRemoval
 	bmesh.ops.delete(bm, geom=context.facesForRemoval, context=5)
 	# there still may be some doubles, inspite of the use of util.VertexMaterial
-	bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
+	#bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
 	
 	# clean up context.facesForRemoval
 	context.facesForRemoval = []
