@@ -2,7 +2,7 @@ import math
 import bpy, bmesh
 from pro import context
 
-from .shape import Shape2d
+from .shape import createShape2d, createRectangle
 
 from .util import zero
 
@@ -50,6 +50,7 @@ class Polygon:
             i -= 1
     
     def inset(self, *distances, **kwargs):
+        self.insets = []
         translate = kwargs["translate"] if "translate" in kwargs else None
         corners = self.corners
         distancePerEdge = False if len(distances)==1 else True
@@ -77,15 +78,15 @@ class Polygon:
             corner.inset(distance1, distance2, translate)
             vert2 = corner._vert
             if distance1!=0:
-                context.bm.faces.new((prevVert1, vert1, vert2, prevVert2))
+                self.insets.append(createShape2d((prevVert1, vert1, vert2, prevVert2)))
             prevVert1 = vert1
             prevVert2 = vert2
             i += 1
         if not distancePerEdge or distances[-2]!=0:
-            context.bm.faces.new((prevVert1, _vert1, _vert2, prevVert2))
+            self.insets.append(createShape2d((prevVert1, _vert1, _vert2, prevVert2)))
             
     def straightSkeleton(self, getVert=None):
-        # result faces
+        # result shapes
         self.faces = []
         sequences = {}
         seq = Sequence(self.edges[0], len(self.corners), self.axis, getVert)
@@ -113,8 +114,7 @@ class Polygon:
             face = [edge.leftVerts.pop()]
             face += edge.rightVerts
             face += edge.leftVerts
-            face = context.bm.faces.new(face)
-            self.faces.append(Shape2d(face.loops[0]))
+            self.faces.append(createShape2d(face))
 
 
 class Roof(Polygon):
@@ -148,6 +148,8 @@ class Roof(Polygon):
         super().inset(*distances, translate=translate)
     
     def translate(self, distance, axis=None):
+        # result shapes
+        self.translated = []
         translate = distance*(axis if axis else self.axis)
         corners = self.corners
         corner = corners[-1]
@@ -165,11 +167,11 @@ class Roof(Polygon):
             corner.vert = corner.vert + translate
             corner._vert = context.bm.verts.new(corner.vert)
             vert2 = corner._vert
-            context.bm.faces.new((prevVert1, vert1, vert2, prevVert2))
+            self.translated.append(createRectangle((prevVert1, vert1, vert2, prevVert2)))
             prevVert1 = vert1
             prevVert2 = vert2
             i += 1
-        context.bm.faces.new((prevVert1, _vert1, _vert2, prevVert2))
+        self.translated.append(createRectangle((prevVert1, _vert1, _vert2, prevVert2)))
 
 
 class Corner:
