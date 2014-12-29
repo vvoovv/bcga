@@ -223,9 +223,9 @@ class FootprintSet(bpy.types.Operator):
 	
 	size = bpy.props.EnumProperty(
 		items = [
-			("35x15", "35x15", "35x15"),
-			("20x10", "20x10", "20x10"),
-			("10x10", "10x10", "10x10")
+			("35x15", "rectangle 35x15", "35x15"),
+			("20x10", "rectangle 20x10", "20x10"),
+			("10x10", "rectangle 10x10", "10x10")
 		]
 	)
 	
