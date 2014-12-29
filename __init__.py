@@ -12,7 +12,7 @@ bl_info = {
 	"category": "Prokitektura",
 }
 
-import sys, os
+import sys, os, math
 for path in sys.path:
 	if "bpro" in path:
 		path = None
@@ -232,15 +232,39 @@ class FootprintSet(bpy.types.Operator):
 	_name = "Prokitektura"
 	
 	def execute(self, context):
+		lightOffset = 20
+		lightHeight = 20
+		scene = context.scene
+		# delete active object if it is a mesh
+		active = context.active_object
+		if active and active.type=="MESH":
+			bpy.ops.object.delete()
 		# half of the width and half of the height
 		w, h = [float(i)/2 for i in self.size.split("x")]
+		# add lights
+		rx = math.atan((h+lightOffset)/lightHeight)
+		rz = math.atan((w+lightOffset)/(h+lightOffset))
+		def lamp_add(x, y, rx, rz):
+			bpy.ops.object.lamp_add(
+				type="SUN",
+				location=((x,y,lightHeight)),
+				rotation=(rx, 0, rz)
+			)
+			context.active_object.data.energy = 0.5
+		lamp_add(w+lightOffset, h+lightOffset, -rx, -rz)
+		lamp_add(-w-lightOffset, h+lightOffset, -rx, rz)
+		lamp_add(-w-lightOffset, -h-lightOffset, rx, -rz)
+		lamp_add(w+lightOffset, -h-lightOffset, rx, rz)
+		
+		bpy.ops.object.select_all(action="DESELECT")
 		mesh = bpy.data.meshes.new(self._name)
 		mesh.from_pydata( ((-w,-h,0), (w,-h,0), (w,h,0), (-w,h,0)), [], ((0,1,2,3),) )
 		obj = bpy.data.objects.new(self._name, mesh)
-		obj.location = context.scene.cursor_location
-		context.scene.objects.link(obj)
-		context.scene.objects.active = obj
+		obj.location = scene.cursor_location
+		scene.objects.link(obj)
+		scene.objects.active = obj
 		obj.select = True
+		bpy.ops.view3d.view_selected()
 		mesh.update()
 		
 		return {"FINISHED"}
