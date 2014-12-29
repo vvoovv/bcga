@@ -403,6 +403,7 @@ class EventContainer:
         if cluster[1]==0:
             # remove cluster
             self.clusters.remove(cluster)
+            self.numClusters -= 1
     
     def clusterCreate(self, event):
         cluster = [event.vert, 1]
