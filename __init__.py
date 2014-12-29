@@ -70,6 +70,8 @@ class ProMainPanel(bpy.types.Panel):
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
+		layout.row().operator_menu_enum("object.footprint_set", "size", text="Footprint")
+		layout.separator()
 		layout.row().prop(scene, "ruleFile")
 		layout.row().operator("object.apply_pro_rule")
 
@@ -210,6 +212,37 @@ class Bake(bpy.types.Operator):
 				textureSlot.texture_coords = "UV"
 				textureSlot.uv_layer = "prokitektura"
 				lowPolyObject.data.materials.append(material)
+		return {"FINISHED"}
+
+
+class FootprintSet(bpy.types.Operator):
+	bl_idname = "object.footprint_set"
+	bl_label = "Prokitektura footprint"
+	bl_description = "Set a building footprint for Prokitektura"
+	bl_options = {"REGISTER", "UNDO"}
+	
+	size = bpy.props.EnumProperty(
+		items = [
+			("35x15", "35x15", "35x15"),
+			("20x10", "20x10", "20x10"),
+			("10x10", "10x10", "10x10")
+		]
+	)
+	
+	_name = "Prokitektura"
+	
+	def execute(self, context):
+		# half of the width and half of the height
+		w, h = [float(i)/2 for i in self.size.split("x")]
+		mesh = bpy.data.meshes.new(self._name)
+		mesh.from_pydata( ((-w,-h,0), (w,-h,0), (w,h,0), (-w,h,0)), [], ((0,1,2,3),) )
+		obj = bpy.data.objects.new(self._name, mesh)
+		obj.location = context.scene.cursor_location
+		context.scene.objects.link(obj)
+		context.scene.objects.active = obj
+		obj.select = True
+		mesh.update()
+		
 		return {"FINISHED"}
 
 
