@@ -26,7 +26,7 @@ y = "y"
 z = "z"
 
 face = "face" # hip_roof
-overhang = "overhang" # hip_roof
+soffit = "soffit" # hip_roof
 fascia = "fascia" # hip_roof
 
 original = "original"

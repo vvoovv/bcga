@@ -8,12 +8,12 @@ class HipRoof(pro.op_hip_roof.HipRoof):
         face = shape.face
         self.init(len(face.verts))
         roof = Roof(face.verts, face.normal)
-        if self.overhangs:
-            roof.inset(*self.overhangs)
-            if self.overhang:
+        if self.soffits:
+            roof.inset(*self.soffits)
+            if self.soffit:
                 for _shape in roof.insets:
                     context.pushState(shape=_shape)
-                    self.overhang.execute()
+                    self.soffit.execute()
                     context.popState()
         if self.fasciaSize:
             roof.translate(self.fasciaSize)

@@ -7,12 +7,12 @@ def hip_roof(*args, **kwargs):
 class HipRoof(ComplexOperator):
     def __init__(self, *args, **kwargs):
         self.args = args
-        self.overhangSize = None
+        self.soffitSize = None
         self.fasciaSize = None
         if "fasciaSize" in kwargs:
             self.fasciaSize = kwargs["fasciaSize"]
         self.face = None
-        self.overhang = None
+        self.soffit = None
         self.fascia = None
         # find all definitions of operator and how many numerical values we have
         numOperators = 0
@@ -32,24 +32,24 @@ class HipRoof(ComplexOperator):
     def init(self, numEdges):
         args = self.args
         numValues = self.numValues
-        overhangs = None
+        soffits = None
         if numValues>2:
             pitches = []
             if numValues==2*numEdges:
-                overhangs = []
+                soffits = []
             for i in range(numEdges):
-                if overhangs is not None:
+                if soffits is not None:
                     pitches.append(args[2*i])
-                    overhangs.append(-args[2*i+1])
+                    soffits.append(-args[2*i+1])
                 else:
                     pitches.append(args[i])
-            if not overhangs and self.overhangSize:
-                overhangs = (self.overhangSize,)
+            if not soffits and self.soffitSize:
+                soffits = (self.soffitSize,)
         else:
             pitches = (args[0],)
             if numValues==2:
-                overhangs = (-args[1],)
-            elif self.overhangSize:
-                overhangs = (self.overhangSize,)
-        self.overhangs = overhangs
+                soffits = (-args[1],)
+            elif self.soffitSize:
+                soffits = (self.soffitSize,)
+        self.soffits = soffits
         self.pitches = pitches
