@@ -8,7 +8,9 @@ Some parameters of the set of rules can be defined as accessible from outside. T
 
 Prokitektura can be used to code existing buildings from a number of photos as well as to generate imaginary cities with desired styles of buildings.
 
-An example set of prokitektura rules can be found [here](https://github.com/vvoovv/prokitektura-examples/blob/master/examples/simple01.py). The building model generated with it can be seen in the [video](https://www.youtube.com/watch?v=GixKhqrdANs).
+Example sets of prokitektura rules:
+* [simple01.py](https://github.com/vvoovv/prokitektura-examples/blob/master/examples/simple01.py), [video](https://www.youtube.com/watch?v=GixKhqrdANs)
+* [house_01.py](https://github.com/vvoovv/prokitektura-examples/blob/master/examples/house_01.py), [video](http://www.youtube.com/watch?v=ZJDHtPAF9d8)
 
 The basic concepts of prokitektura are explained in the [tutorial](https://github.com/vvoovv/prokitektura-blender/wiki/Tutorial).
 
