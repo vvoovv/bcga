@@ -35,7 +35,7 @@ def buildFactory():
 	factory["Join"] = Join
 	factory["HipRoof"] = HipRoof
 
-def apply(ruleFile, startRule="Lot"):
+def apply(ruleFile, startRule="Begin"):
 	# apply all transformations to the active Blender object
 	bpy.ops.object.mode_set(mode="OBJECT")
 	bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
