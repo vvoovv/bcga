@@ -454,12 +454,16 @@ class Rectangle(Shape2d):
         
         # check if need to create cap1
         _cap1 = defs.cap1 if defs.cap1 else defs.cap
-        # use cap1 variable to store vertices for cap number 1
-        cap1 = None if isinstance(_cap1, Delete) else [prevVert1]
+        # Use cap1 variable to store vertices for cap number 1.
+        # The stuff ([prevVert1] if axis==x else [None, prevVert1]) is needed
+        # to ensure that the edge from the original shape will be the first edge in cap1
+        cap1 = None if isinstance(_cap1, Delete) else ([prevVert1] if axis==x else [None, prevVert1])
         # check if need to create cap2
         _cap2 = defs.cap2 if defs.cap2 else defs.cap
-        # use cap2 variable to store vertices for cap number 2
-        cap2 = None if isinstance(_cap2, Delete) else [prevVert2]
+        # Use cap2 variable to store vertices for cap number 2.
+        # The stuff ([prevVert2] if axis==y else [None, prevVert2]) is needed
+        # to ensure that the edge from the original shape will be the first edge in cap2
+        cap2 = None if isinstance(_cap2, Delete) else ([prevVert2] if axis==y else [None, prevVert2])
         
         shapesWithRule = []
         numParts = len(parts)
@@ -538,9 +542,14 @@ class Rectangle(Shape2d):
             shapesWithRule.append((shape, rule))
         # treat caps
         if cap1:
-            cap1.append(vert1)
+            # ensure that the edge from the original shape will be the first edge in cap1
             if axis==x:
-                cap1 = reversed(cap1)
+                cap1.append(vert1)
+                cap1.append(cap1[0])
+                cap1.reverse()
+                cap1.pop()
+            else:
+                cap1[0] = vert1
             shape = createShape2d(cap1)
             # inherit material if necessary
             if defs.inheritMaterialAll or defs.inheritMaterialCap:
@@ -553,9 +562,14 @@ class Rectangle(Shape2d):
                 # _cape1 is the rule for shape
                 shapesWithRule.append((shape, _cap1))
         if cap2:
-            cap2.append(vert2)
+            # ensure that the edge from the original shape will be the first edge in cap2
             if axis==y:
-                cap2 = reversed(cap2)
+                cap2.append(vert2)
+                cap2.append(cap2[0])
+                cap2.reverse()
+                cap2.pop()
+            else:
+                cap2[0] = vert2
             shape = createShape2d(cap2)
             # inherit material if necessary
             if defs.inheritMaterialAll or defs.inheritMaterialCap:
