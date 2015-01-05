@@ -12,6 +12,7 @@ from .op_color import color
 from .op_texture import texture
 from .op_delete import delete
 from .op_join import join
+from .op_inset import inset
 
 from .op_hip_roof import hip_roof
 

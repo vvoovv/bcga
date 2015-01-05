@@ -40,7 +40,7 @@ class Extrude2(ComplexOperator):
         numOperators = 0
         # a list for parts definitions
         parts = []
-        # are we in the declartion of parts or in the declaration of rules?
+        # are we in the declaration of parts or in the declaration of rules?
         inParts = True
         numArgs = len(args)
         argIndex = 0
@@ -49,7 +49,7 @@ class Extrude2(ComplexOperator):
             if inParts:
                 # Append to parts a tuple with 3 elements (value, height, operator) if the part is define like
                 # value, height>>operator(...), ...
-                # Append to parts atuple with 2 elements (value, height) if an operator for the part is not given:
+                # Append to parts a tuple with 2 elements (value, height) if an operator for the part is not given:
                 # value, height, ...
                 if isinstance(arg, Operator):
                     inParts = False

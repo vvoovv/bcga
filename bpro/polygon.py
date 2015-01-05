@@ -9,10 +9,25 @@ from .util import zero
 timeTolerance = 0.0001
 distanceTolerance2 = 0.000001
 
+class Manager:
+    """A dummy manager for Polygon class declared below"""
+    
+    def getValue(self, obj):
+        # return obj as is
+        return obj
+    
+    def resolve(self, shape, value):
+        # do nothing here
+        pass
+    
+# create an instance of the dummy manager class
+_manager = Manager()
+    
 
 class Polygon:
-    def __init__(self, verts, axis):
+    def __init__(self, verts, axis, manager=None):
         self.axis = axis
+        self.manager = manager if manager else _manager
         edges = []
         corners = []
         numVerts = len(verts)
@@ -50,16 +65,16 @@ class Polygon:
             i -= 1
     
     def inset(self, *distances, **kwargs):
-        self.insets = []
-        translate = kwargs["translate"] if "translate" in kwargs else None
+        manager = self.manager
+        translate = kwargs["height"]*self.axis if "height" in kwargs else None
         corners = self.corners
         distancePerEdge = False if len(distances)==1 else True
         if distancePerEdge:
-            distance1 = distances[-2]
-            distance2 = distances[-1]
-            i = 0
+            distance1 = manager.getValue(distances[-2])
+            _d = distance1
+            distance2 = manager.getValue(distances[-1])
         else:
-            distance1 = distances[0]
+            distance1 = manager.getValue(distances[0])
             distance2 = distance1
         corner = corners[-1]
         prevVert1 = corner._vert
@@ -73,21 +88,22 @@ class Polygon:
             corner = corners[i]
             if distancePerEdge:
                 distance1 = distance2
-                distance2 = distances[i]
+                distance2 = manager.getValue(distances[i])
             vert1 = corner._vert
             corner.inset(distance1, distance2, translate)
             vert2 = corner._vert
             if distance1!=0:
-                self.insets.append(createShape2d((prevVert1, vert1, vert2, prevVert2)))
+                shape = createShape2d((prevVert1, vert1, vert2, prevVert2))
+                manager.resolve(shape, distances[i] if distancePerEdge else distance2)
             prevVert1 = vert1
             prevVert2 = vert2
             i += 1
-        if not distancePerEdge or distances[-2]!=0:
-            self.insets.append(createShape2d((prevVert1, _vert1, _vert2, prevVert2)))
+        if not distancePerEdge or _d!=0:
+            shape = createShape2d((prevVert1, _vert1, _vert2, prevVert2))
+            manager.resolve(shape, distances[-1])
+            
             
     def straightSkeleton(self, getVert=None):
-        # result shapes
-        self.faces = []
         sequences = {}
         seq = Sequence(self.edges[0], len(self.corners), self.axis, getVert)
         sequences[seq.id] = seq
@@ -108,18 +124,19 @@ class Polygon:
                     del sequences[_id]
                     numSequences -= 1
 
-        # create faces and Prokitektura shape for the straight skeleton
+        # create faces and Prokitektura shapes for the straight skeleton
         for edge in self.edges:
             edge.leftVerts.reverse()
             face = [edge.leftVerts.pop()]
             face += edge.rightVerts
             face += edge.leftVerts
-            self.faces.append(createShape2d(face))
+            shape = createShape2d(face)
+            self.manager.resolve(shape, edge.pitch)
 
 
 class Roof(Polygon):
-    def __init__(self, verts, axis):
-        super().__init__(verts, axis)
+    def __init__(self, verts, axis, manager=None):
+        super().__init__(verts, axis, manager)
 
     def roof(self, *pitches):
         numPitches = len(pitches)
@@ -143,13 +160,7 @@ class Roof(Polygon):
             return vert + t*self.axis
         self.straightSkeleton(getVert)
     
-    def inset(self, *distances, **kwargs):
-        translate = kwargs["height"]*self.axis if "height" in kwargs else None
-        super().inset(*distances, translate=translate)
-    
     def translate(self, distance, axis=None):
-        # result shapes
-        self.translated = []
         translate = distance*(axis if axis else self.axis)
         corners = self.corners
         corner = corners[-1]
@@ -167,11 +178,11 @@ class Roof(Polygon):
             corner.vert = corner.vert + translate
             corner._vert = context.bm.verts.new(corner.vert)
             vert2 = corner._vert
-            self.translated.append(createRectangle((prevVert1, vert1, vert2, prevVert2)))
+            self.manager.resolve(createRectangle((prevVert1, vert1, vert2, prevVert2)))
             prevVert1 = vert1
             prevVert2 = vert2
             i += 1
-        self.translated.append(createRectangle((prevVert1, _vert1, _vert2, prevVert2)))
+        self.manager.resolve(createRectangle((prevVert1, _vert1, _vert2, prevVert2)))
 
 
 class Corner:

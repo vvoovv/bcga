@@ -1,32 +1,31 @@
 import pro
 from pro import context
 from .polygon import Roof
+from .polygon_manager import Manager
 
 class HipRoof(pro.op_hip_roof.HipRoof):
     def execute(self):
         shape = context.getState().shape
         face = shape.face
         self.init(len(face.verts))
-        roof = Roof(face.verts, face.normal)
+        manager = Manager()
+        roof = Roof(face.verts, face.normal, manager)
+        # soffits
         if self.soffits:
+            manager.rule = self.soffit
             roof.inset(*self.soffits)
-            if self.soffit:
-                for _shape in roof.insets:
-                    context.pushState(shape=_shape)
-                    self.soffit.execute()
-                    context.popState()
+        # fascias
         if self.fasciaSize:
+            manager.rule = self.fascia
             roof.translate(self.fasciaSize)
-            if self.fascia:
-                for _shape in roof.translated:
-                    context.pushState(shape=_shape)
-                    self.fascia.execute()
-                    context.popState()
+        # hip roof itself
+        manager.rule = self.face
         roof.roof(*self.pitches)
         shape.delete()
-        if self.face:
-            for _shape in roof.faces:
-                context.pushState(shape=_shape)
-                self.face.execute()
-                context.popState()
+        # finalizing: if there is a rule for the shape, execute it
+        for entry in manager.shapes:
+            context.pushState(shape=entry[0])
+            entry[1].execute()
+            context.popState()
+        
         

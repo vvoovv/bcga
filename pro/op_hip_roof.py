@@ -1,4 +1,4 @@
-from .base import Operator, ComplexOperator, context, countOperator
+from .base import ComplexOperator, context, countOperator
 
 def hip_roof(*args, **kwargs):
     return context.factory["HipRoof"](*args, **kwargs)
@@ -19,7 +19,7 @@ class HipRoof(ComplexOperator):
         i = len(args) - 1
         while i>0:
             arg = args[i]
-            if isinstance(arg, Operator):
+            if countOperator(arg):
                 setattr(self, arg.value, arg)
                 numOperators += 1
             else:
