@@ -139,10 +139,11 @@ class Roof(Polygon):
         super().__init__(verts, axis, manager)
 
     def roof(self, *pitches):
+        manager = self.manager
         numPitches = len(pitches)
         if numPitches==1:
-            pitch = math.radians(pitches[0])
-            distance = 1/math.tan(pitch)
+            pitch = pitches[0]
+            distance = 1/math.tan( math.radians(manager.getValue(pitch)) )
             for edge in self.edges:
                 edge.pitch = pitch
                 edge.distance = distance
@@ -151,10 +152,10 @@ class Roof(Polygon):
             i = 0
             while i<numPitches:
                 edge = self.edges[i]
-                pitch = math.radians(pitches[i])
+                pitch = pitches[i]
                 edge.pitch = pitch
                 # edge.distance is equal to cotangent of pitch
-                edge.distance = 1/math.tan(pitch)
+                edge.distance = 1/math.tan( math.radians(manager.getValue(pitch)) )
                 i += 1
         def getVert(vert, t):
             return vert + t*self.axis

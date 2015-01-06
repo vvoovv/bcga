@@ -1,4 +1,4 @@
-from .base import ComplexOperator, context, countOperator
+from .base import Operator, ComplexOperator, context
 
 def hip_roof(*args, **kwargs):
     return context.factory["HipRoof"](*args, **kwargs)
@@ -16,17 +16,25 @@ class HipRoof(ComplexOperator):
         self.fascia = None
         # find all definitions of operator and how many numerical values we have
         numOperators = 0
+        numValues = 0
         i = len(args) - 1
-        while i>0:
+        while i>=0:
             arg = args[i]
-            if countOperator(arg):
-                setattr(self, arg.value, arg)
-                numOperators += 1
-            else:
-                self.numValues = i + 1
-                break
+            if isinstance(arg, Operator):
+                if isinstance(arg.value, str):
+                    # rule or operator
+                    setattr(self, arg.value, arg)
+                elif numValues==0:
+                    # roof definition (pitch or inset)
+                    numValues = i + 1
+                if arg.count:
+                    arg.count = False
+                    numOperators += 1
+            elif numValues==0:
+                # roof definition (pitch or inset)
+                numValues = i + 1
             i -= 1
-
+        self.numValues = numValues
         super().__init__(numOperators)
     
     def init(self, numEdges):
