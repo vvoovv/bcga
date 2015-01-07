@@ -67,6 +67,7 @@ class Polygon:
     def inset(self, *distances, **kwargs):
         manager = self.manager
         translate = kwargs["height"]*self.axis if "height" in kwargs else None
+        negate = kwargs["negate"] if "negate" in kwargs else False
         corners = self.corners
         distancePerEdge = False if len(distances)==1 else True
         if distancePerEdge:
@@ -79,7 +80,7 @@ class Polygon:
         corner = corners[-1]
         prevVert1 = corner._vert
         _vert1 = prevVert1
-        corner.inset(distance1, distance2, translate)
+        corner.inset(distance1, distance2, translate, negate)
         prevVert2 = corner._vert
         _vert2 = prevVert2
         i = 0
@@ -90,17 +91,21 @@ class Polygon:
                 distance1 = distance2
                 distance2 = manager.getValue(distances[i])
             vert1 = corner._vert
-            corner.inset(distance1, distance2, translate)
+            corner.inset(distance1, distance2, translate, negate)
             vert2 = corner._vert
             if distance1!=0:
-                shape = createShape2d((prevVert1, vert1, vert2, prevVert2))
-                manager.resolve(shape, distances[i] if distancePerEdge else distance2)
+                manager.resolve(
+                    createShape2d((prevVert1, vert1, vert2, prevVert2)),
+                    distances[i-1] if distancePerEdge else distances[0]
+                )
             prevVert1 = vert1
             prevVert2 = vert2
             i += 1
         if not distancePerEdge or _d!=0:
-            shape = createShape2d((prevVert1, _vert1, _vert2, prevVert2))
-            manager.resolve(shape, distances[-1])
+            manager.resolve(
+                createShape2d((prevVert1, _vert1, _vert2, prevVert2)),
+                distances[-2] if distancePerEdge else distances[0]
+            )
             
             
     def straightSkeleton(self, getVert=None):
@@ -207,11 +212,14 @@ class Corner:
             # cosine of the angle between -self.edge1.vec and self.edge2.vec
             self.cos = -(edge1.vec.dot(self.edge2.vec))
     
-    def inset(self, d1, d2, translate=None):
+    def inset(self, d1, d2, translate=None, negate=False):
         vert = None
         if d1==0 and d2==0 and translate:
             vert = self.vert + translate
         else:
+            if negate:
+                d1 = -d1
+                d2 = -d2
             vert = self.vert
             edge1 = self.edge1
             # extruded counterpart of self.vert

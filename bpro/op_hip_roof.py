@@ -13,7 +13,7 @@ class HipRoof(pro.op_hip_roof.HipRoof):
         # soffits
         if self.soffits:
             manager.rule = self.soffit
-            roof.inset(*self.soffits)
+            roof.inset(*self.soffits, negate=True)
         # fascias
         if self.fasciaSize:
             manager.rule = self.fascia

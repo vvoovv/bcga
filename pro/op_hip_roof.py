@@ -48,7 +48,7 @@ class HipRoof(ComplexOperator):
             for i in range(numEdges):
                 if soffits is not None:
                     pitches.append(args[2*i])
-                    soffits.append(-args[2*i+1])
+                    soffits.append(args[2*i+1])
                 else:
                     pitches.append(args[i])
             if not soffits and self.soffitSize:
@@ -56,7 +56,7 @@ class HipRoof(ComplexOperator):
         else:
             pitches = (args[0],)
             if numValues==2:
-                soffits = (-args[1],)
+                soffits = (args[1],)
             elif self.soffitSize:
                 soffits = (self.soffitSize,)
         self.soffits = soffits
