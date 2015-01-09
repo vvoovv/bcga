@@ -106,7 +106,14 @@ class Polygon:
                 createShape2d((prevVert1, _vert1, _vert2, prevVert2)),
                 distances[-2] if distancePerEdge else distances[0]
             )
-            
+    
+    def getShape(self, constructor):
+        """Returns a polygon composed of the present vertices"""
+        verts = []
+        for corner in self.corners:
+            verts.append(corner._vert)
+        face = context.bm.faces.new(verts)
+        return constructor(face.loops[0])
             
     def straightSkeleton(self, getVert=None):
         sequences = {}
