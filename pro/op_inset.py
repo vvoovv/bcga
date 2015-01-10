@@ -8,6 +8,7 @@ class Inset(ComplexOperator):
         self.height = kwargs["height"] if "height" in kwargs else None
         self.cap = None
         self.side = None
+        self.keepOriginal = False
         numOperators = 0
         # a list with definitions of insets
         insets = []

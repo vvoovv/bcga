@@ -21,7 +21,8 @@ class Inset(pro.op_inset.Inset):
                 context.pushState(shape=shape)
                 self.cap.execute()
                 context.popState()
-        #shape.delete()
+        if not self.keepOriginal:
+            context.facesForRemoval.append(face)
         # finalizing: if there is a rule for the shape, execute it
         for entry in manager.shapes:
             context.pushState(shape=entry[0])
