@@ -145,6 +145,30 @@ class Polygon:
             shape = createShape2d(face)
             self.manager.resolve(shape, edge.pitch)
 
+    def translate(self, distance, axis=None):
+        translate = distance*(axis if axis else self.axis)
+        corners = self.corners
+        corner = corners[-1]
+        prevVert1 = corner._vert
+        _vert1 = prevVert1
+        corner.vert = corner.vert + translate
+        corner._vert = context.bm.verts.new(corner.vert)
+        prevVert2 = corner._vert
+        _vert2 = prevVert2
+        i = 0
+        numCorners = self.numEdges-1
+        while i<numCorners:
+            corner = corners[i]
+            vert1 = corner._vert
+            corner.vert = corner.vert + translate
+            corner._vert = context.bm.verts.new(corner.vert)
+            vert2 = corner._vert
+            self.manager.resolve(createRectangle((prevVert1, vert1, vert2, prevVert2)))
+            prevVert1 = vert1
+            prevVert2 = vert2
+            i += 1
+        self.manager.resolve(createRectangle((prevVert1, _vert1, _vert2, prevVert2)))
+
 
 class Roof(Polygon):
     def __init__(self, verts, axis, manager=None):
@@ -172,30 +196,6 @@ class Roof(Polygon):
         def getVert(vert, t):
             return vert + t*self.axis
         self.straightSkeleton(getVert)
-    
-    def translate(self, distance, axis=None):
-        translate = distance*(axis if axis else self.axis)
-        corners = self.corners
-        corner = corners[-1]
-        prevVert1 = corner._vert
-        _vert1 = prevVert1
-        corner.vert = corner.vert + translate
-        corner._vert = context.bm.verts.new(corner.vert)
-        prevVert2 = corner._vert
-        _vert2 = prevVert2
-        i = 0
-        numCorners = self.numEdges-1
-        while i<numCorners:
-            corner = corners[i]
-            vert1 = corner._vert
-            corner.vert = corner.vert + translate
-            corner._vert = context.bm.verts.new(corner.vert)
-            vert2 = corner._vert
-            self.manager.resolve(createRectangle((prevVert1, vert1, vert2, prevVert2)))
-            prevVert1 = vert1
-            prevVert2 = vert2
-            i += 1
-        self.manager.resolve(createRectangle((prevVert1, _vert1, _vert2, prevVert2)))
 
 
 class Corner:

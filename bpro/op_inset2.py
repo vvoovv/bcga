@@ -22,9 +22,11 @@ class Inset2(pro.op_inset2.Inset2):
                 else:
                     rule = self.side
                 manager.rule = rule
-                kwargs = {"height": height} if height else {}
-                polygon.inset(inset[0], **kwargs)
-        
+                if inset[0]: # not zero
+                    kwargs = {"height": height} if height else {}
+                    polygon.inset(inset[0], **kwargs)
+                else:
+                    polygon.translate(height)
         # create a shape for the cap if necessary
         cap = self.cap
         if not isinstance(cap, Delete):
