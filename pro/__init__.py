@@ -13,6 +13,7 @@ from .op_texture import texture
 from .op_delete import delete
 from .op_join import join
 from .op_inset import inset
+from .op_inset2 import inset2
 
 from .op_hip_roof import hip_roof
 

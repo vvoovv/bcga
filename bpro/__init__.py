@@ -16,6 +16,7 @@ from .op_texture import Texture
 from .op_delete import Delete
 from .op_join import Join
 from .op_inset import Inset
+from .op_inset2 import Inset2
 from .op_hip_roof import HipRoof
 
 from pro.base import Param
@@ -35,6 +36,7 @@ def buildFactory():
 	factory["Delete"] = Delete
 	factory["Join"] = Join
 	factory["Inset"] = Inset
+	factory["Inset2"] = Inset2
 	factory["HipRoof"] = HipRoof
 
 def apply(ruleFile, startRule="Begin"):
