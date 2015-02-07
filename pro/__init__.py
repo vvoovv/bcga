@@ -15,6 +15,8 @@ from .op_join import join
 from .op_inset import inset
 from .op_inset2 import inset2
 
+from .op_rectangle import rectangle
+
 from .op_hip_roof import hip_roof
 
 from .base import flt, rel

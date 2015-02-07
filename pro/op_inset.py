@@ -9,6 +9,10 @@ class Inset(ComplexOperator):
         self.cap = None
         self.side = None
         self.keepOriginal = False
+        # apply kwargs
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
+        
         numOperators = 0
         # a list with definitions of insets
         insets = []

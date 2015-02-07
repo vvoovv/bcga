@@ -17,6 +17,7 @@ from .op_delete import Delete
 from .op_join import Join
 from .op_inset import Inset
 from .op_inset2 import Inset2
+from .op_rectangle import Rectangle
 from .op_hip_roof import HipRoof
 
 from pro.base import Param
@@ -37,16 +38,26 @@ def buildFactory():
 	factory["Join"] = Join
 	factory["Inset"] = Inset
 	factory["Inset2"] = Inset2
+	factory["Rectangle"] = Rectangle
 	factory["HipRoof"] = HipRoof
 
 def apply(ruleFile, startRule="Begin"):
+	from .bl_util import create_rectangle
+	
+	blenderContext = context.blenderContext
+	obj = blenderContext.object
+	if obj:
+		bpy.ops.object.mode_set(mode="OBJECT")
+	
+	if not obj or obj.type != "MESH" or not len(obj.data.polygons):
+		# no active object
+		create_rectangle(blenderContext, 20, 10)
 	# apply all transformations to the active Blender object
-	bpy.ops.object.mode_set(mode="OBJECT")
 	bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 	# setting the path to the rule for context
 	context.ruleFile = ruleFile if isinstance(ruleFile, str) else ruleFile.__file__
 	params = None
-	mesh = bpy.context.object.data
+	mesh = blenderContext.object.data
 	# create a uv layer for the mesh
 	# TODO: a separate pass through the rules is needed to find out how many uv layers are needed 
 	mesh.uv_textures.new(Texture.defaultLayer)

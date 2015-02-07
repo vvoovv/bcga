@@ -3,6 +3,7 @@ import mathutils
 from pro import context
 
 xAxis = mathutils.Vector((1, 0, 0))
+yAxis = mathutils.Vector((0, 1, 0))
 zAxis = mathutils.Vector((0, 0, 1))
 
 zero = 0.000001

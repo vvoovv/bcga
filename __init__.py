@@ -229,8 +229,6 @@ class FootprintSet(bpy.types.Operator):
 		]
 	)
 	
-	_name = "Prokitektura"
-	
 	def execute(self, context):
 		lightOffset = 20
 		lightHeight = 20
@@ -239,8 +237,8 @@ class FootprintSet(bpy.types.Operator):
 		active = context.active_object
 		if active and active.type=="MESH":
 			bpy.ops.object.delete()
-		# half of the width and half of the height
-		w, h = [float(i)/2 for i in self.size.split("x")]
+		# getting width and height of the footprint
+		w, h = [float(i) for i in self.size.split("x")]
 		# add lights
 		rx = math.atan((h+lightOffset)/lightHeight)
 		rz = math.atan((w+lightOffset)/(h+lightOffset))
@@ -256,16 +254,7 @@ class FootprintSet(bpy.types.Operator):
 		lamp_add(-w-lightOffset, -h-lightOffset, rx, -rz)
 		lamp_add(w+lightOffset, -h-lightOffset, rx, rz)
 		
-		bpy.ops.object.select_all(action="DESELECT")
-		mesh = bpy.data.meshes.new(self._name)
-		mesh.from_pydata( ((-w,-h,0), (w,-h,0), (w,h,0), (-w,h,0)), [], ((0,1,2,3),) )
-		obj = bpy.data.objects.new(self._name, mesh)
-		obj.location = scene.cursor_location
-		scene.objects.link(obj)
-		scene.objects.active = obj
-		obj.select = True
-		bpy.ops.view3d.view_selected()
-		mesh.update()
+		bpro.bl_util.create_rectangle(context, w, h)
 		
 		return {"FINISHED"}
 

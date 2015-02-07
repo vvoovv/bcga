@@ -11,6 +11,10 @@ class Inset2(ComplexOperator):
         # which edges to exclude?
         self.exclude = None
         self.keepOriginal = False
+        # apply kwargs
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
+        
         numOperators = 0
         # a list with definitions of insets
         insets = []
