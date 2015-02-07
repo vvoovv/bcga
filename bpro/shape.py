@@ -247,6 +247,24 @@ class Shape2d:
                 break
         return (max(uCoords)-min(uCoords), max(vCoords)-min(vCoords))
     
+    def center(self):
+        """
+        Returns the center of shape in the global coordinate system
+        """
+        center = None
+        firstLoop = self.firstLoop
+        # iterate through all loops of the face
+        loop = firstLoop
+        while True:
+            if center:
+                center += loop.vert.co
+            else:
+                center = loop.vert.co
+            loop = loop.link_loop_next
+            if loop == firstLoop:
+                break
+        return center/len(self.face.verts)
+    
     def delete(self):
         context.facesForRemoval.append(self.face)
 
