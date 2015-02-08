@@ -604,6 +604,12 @@ class Rectangle(Shape2d):
             context.facesForRemoval.append(self.face)
             
         return shapesWithRule
+    
+    def center(self):
+        """
+        Overloads Shape2d.center
+        """
+        return (self.origin + self.firstLoop.link_loop_next.link_loop_next.vert.co)/2
                 
 
 class Shape3d:
