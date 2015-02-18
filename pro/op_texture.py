@@ -9,4 +9,7 @@ def texture(path="", width=0, height=0, **kwargs):
         width: Texture width in the units of global coordinate system
         height: Texture height in the units of global coordinate sytem
     """
+    # treat the special case when path is actually a tuple (path, width, height)
+    if isinstance(path, (tuple, list)):
+        path, width, height = path
     return context.factory["Texture"](path, width, height, **kwargs)

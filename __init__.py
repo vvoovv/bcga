@@ -102,7 +102,16 @@ class Pro(bpy.types.Operator):
 		proContext.blenderContext = context
 		ruleFile = getRuleFile(context.scene.ruleFile, self)
 		if ruleFile:
+			# append the directory of the ruleFile to sys.path
+			ruleFileDirectory = os.path.dirname(os.path.realpath(os.path.expanduser(ruleFile)))
+			if ruleFileDirectory not in sys.path:
+				sys.path.append(ruleFileDirectory)
+
 			module,params = bpro.apply(ruleFile)
+			
+			context.object.select = True
+			bpy.ops.view3d.view_selected()
+			
 			self.module = module
 			self.params = params
 			# new params arrived, so clean all collections
