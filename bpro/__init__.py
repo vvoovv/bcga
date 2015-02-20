@@ -67,6 +67,8 @@ def apply(ruleFile, startRule="Begin"):
 	context.init()
 	# setting bmesh instance
 	bm = bmesh.from_edit_mesh(mesh)
+	if hasattr(bm.faces, "ensure_lookup_table"):
+		bm.faces.ensure_lookup_table()
 	context.addAttribute("bm", bm)
 	# list of unused faces for removal
 	context.addAttribute("facesForRemoval", [])
