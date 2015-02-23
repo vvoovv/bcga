@@ -17,3 +17,9 @@ The basic concepts of prokitektura are explained in the [tutorial](https://githu
 twitter: [@prokitektura](https://twitter.com/prokitektura)
 
 Thread at blenderartists.org: http://blenderartists.org/forum/showthread.php?351081-Addon-WIP-Prokitektura-procedural-generation-of-architectural-3D-models
+
+
+## Donations
+If you like the addon, please consider making a donation:
+
+[![Please donate](https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZZ7CHNYKWYYZE)
