@@ -10,7 +10,7 @@ class Inset2(pro.op_inset2.Inset2):
         shape = context.getState().shape
         face = shape.face
         manager = Manager()
-        polygon = Polygon(face.verts, face.normal, manager)
+        polygon = Polygon(face.verts, shape.getNormal(), manager)
         
         # process each inset
         for inset in self.insets:

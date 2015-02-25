@@ -9,7 +9,7 @@ class Inset(pro.op_inset.Inset):
         shape = context.getState().shape
         face = shape.face
         manager = Manager()
-        polygon = Polygon(face.verts, face.normal, manager)
+        polygon = Polygon(face.verts, shape.getNormal(), manager)
         manager.rule = self.side
         kwargs = {"height": self.height} if self.height else {}
         polygon.inset(*self.insets, **kwargs)
