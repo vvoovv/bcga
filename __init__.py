@@ -2,7 +2,7 @@ bl_info = {
 	"name": "Prokitektura",
 	"author": "Vladimir Elistratov <vladimir.elistratov@gmail.com>",
 	"version": (0, 0, 0),
-	"blender": (2, 7, 1),
+	"blender": (2, 7, 3),
 	"location": "View3D > Tool Shelf",
 	"description": "Prokitektura implementation for Blender",
 	"warning": "",
@@ -239,6 +239,8 @@ class FootprintSet(bpy.types.Operator):
 	)
 	
 	def execute(self, context):
+		from bpro.bl_util import create_rectangle
+				
 		lightOffset = 20
 		lightHeight = 20
 		scene = context.scene
@@ -263,7 +265,7 @@ class FootprintSet(bpy.types.Operator):
 		lamp_add(-w-lightOffset, -h-lightOffset, rx, -rz)
 		lamp_add(w+lightOffset, -h-lightOffset, rx, rz)
 		
-		bpro.bl_util.create_rectangle(context, w, h)
+		create_rectangle(context, w, h)
 		
 		return {"FINISHED"}
 
