@@ -9,7 +9,7 @@ class HipRoof(pro.op_hip_roof.HipRoof):
         face = shape.face
         self.init(len(face.verts))
         manager = Manager()
-        roof = Roof(face.verts, face.getNormal(), manager)
+        roof = Roof(face.verts, shape.getNormal(), manager)
         # soffits
         if self.soffits:
             manager.rule = self.soffit
