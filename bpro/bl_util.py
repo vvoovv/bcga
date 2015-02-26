@@ -15,6 +15,10 @@ def create_rectangle(blenderContext, sizeX, sizeY):
     obj.location = scene.cursor_location
     scene.objects.link(obj)
     scene.objects.active = obj
+    align_view(obj)
+    mesh.update()
+
+
+def align_view(obj):
     obj.select = True
     bpy.ops.view3d.view_selected()
-    mesh.update()

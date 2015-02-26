@@ -27,6 +27,8 @@ import bpro
 from pro import context as proContext
 from pro.base import ParamFloat, ParamColor
 
+from bpro.bl_util import create_rectangle, align_view
+
 def getRuleFile(ruleFile, operator):
 	"""
 	Returns full path to a rule file or None if it does not exist.
@@ -109,8 +111,7 @@ class Pro(bpy.types.Operator):
 
 			module,params = bpro.apply(ruleFile)
 			
-			context.object.select = True
-			bpy.ops.view3d.view_selected()
+			align_view(context.object)
 			
 			self.module = module
 			self.params = params
@@ -140,6 +141,9 @@ class Pro(bpy.types.Operator):
 			paramCounter += 1
 			if paramCounter==9:break
 		bpro.apply(self.module)
+		
+		align_view(context.object)
+		
 		return {"FINISHED"}
 	
 	def draw(self, context):
@@ -239,8 +243,6 @@ class FootprintSet(bpy.types.Operator):
 	)
 	
 	def execute(self, context):
-		from bpro.bl_util import create_rectangle
-				
 		lightOffset = 20
 		lightHeight = 20
 		scene = context.scene
