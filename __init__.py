@@ -247,7 +247,7 @@ class FootprintSet(bpy.types.Operator):
 		lightHeight = 20
 		scene = context.scene
 		# delete active object if it is a mesh
-		active = context.active_object
+		active = context.object
 		if active and active.type=="MESH":
 			bpy.ops.object.delete()
 		# getting width and height of the footprint
@@ -268,6 +268,7 @@ class FootprintSet(bpy.types.Operator):
 		lamp_add(w+lightOffset, -h-lightOffset, rx, rz)
 		
 		create_rectangle(context, w, h)
+		align_view(context.object)
 		
 		return {"FINISHED"}
 

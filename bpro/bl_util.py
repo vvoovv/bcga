@@ -15,7 +15,6 @@ def create_rectangle(blenderContext, sizeX, sizeY):
     obj.location = scene.cursor_location
     scene.objects.link(obj)
     scene.objects.active = obj
-    align_view(obj)
     mesh.update()
 
 

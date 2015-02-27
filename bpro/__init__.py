@@ -49,8 +49,11 @@ def apply(ruleFile, startRule="Begin"):
 	if obj:
 		bpy.ops.object.mode_set(mode="OBJECT")
 	
-	if not obj or obj.type != "MESH" or not len(obj.data.polygons):
-		# no active object
+	noMeshCondition = not obj or obj.type != "MESH"
+	if noMeshCondition or len(obj.data.polygons) != 1:
+		if not noMeshCondition:
+			# delete if it's non-flat mesh
+			bpy.ops.object.delete()
 		create_rectangle(blenderContext, 20, 10)
 	# apply all transformations to the active Blender object
 	bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
