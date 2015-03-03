@@ -22,7 +22,7 @@ class Inset2(pro.op_inset2.Inset2):
                 else:
                     rule = self.side
                 manager.rule = rule
-                if inset[0]: # not zero
+                if float(inset[0]): # not zero
                     kwargs = {"height": height} if height else {}
                     polygon.inset(inset[0], **kwargs)
                 else:

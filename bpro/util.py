@@ -53,8 +53,13 @@ def rotation_zNormal_xHorizontal(firstLoop, normal=None, reverse=False):
         # The rotation axis lies in the xy plane of the global coordinate system.
         # The rotation axis is the bisecting vector between xAxis and firstEdge
         # The rotation angle is equal to 180 degrees
-        axis = firstLoopVector + xAxis
-        axis.normalize()
+        if firstLoopVector[0]<-unityThreshold:
+            # This is the special case: firstLoopVector is alligned along -xAxis
+            # The bisecting vector is yAxis for that case
+            axis = yAxis
+        else:
+            axis = firstLoopVector + xAxis
+            axis.normalize()
         
         rotationMatrix[0][0] = 2*axis[0]*axis[0] - 1
         rotationMatrix[0][1] = 2*axis[0]*axis[1]
