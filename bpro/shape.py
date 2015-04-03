@@ -17,8 +17,25 @@ def getInitialShape(bm):
     # check where the face normal is pointing and reverse it, if necessary
     if face.normal[2]<0:
         bmesh.ops.reverse_faces(bm, faces=(face,))
+    
+    constructor = Shape2d
         
-    return Shape2d(face.loops[0])
+    # check if have a rectangle
+    v = face.verts
+    if len(v)==4:
+        # the quadrangle is formed by the vectors v1, v2, v3, v4
+        v1 = v[1].co - v[0].co
+        v2 = v[2].co - v[1].co
+        v2_ = v2.length
+        v3 = v[3].co - v[2].co
+        v3_ = v3.length
+        v4 = v[0].co - v[3].co
+        # check if have 3 right angles
+        zero = 0.001
+        if abs( v1.dot(v2)/(v1.length*v2_) )<=zero and abs( v2.dot(v3)/(v2_*v3_)<=zero ) and abs( v3.dot(v4)/(v3_*v4.length)<=zero ):
+            constructor = Rectangle
+            
+    return constructor(face.loops[0])
 
 def createRectangle(verts):
     face = context.bm.faces.new(verts)
@@ -49,6 +66,7 @@ class Shape2d:
             extrude (pro.op_extrude.Extrude): Instance of pro.op_extrude.Extrude
         """
         depth = extrude.depth
+        interior = extrude.interior
         bm = context.bm
         # store the reference to the original face
         originalFace = self.face
@@ -79,7 +97,7 @@ class Shape2d:
         # now we have a 3D shape
         # build a list of 2D shapes (faces) that costitute the 3D shape
         shapes = []
-        if extrude.keepOriginal:
+        if extrude.keepOriginal or interior:
             shapes.append(self)
             # index of the first side shape
             sideIndex = 2
@@ -120,6 +138,15 @@ class Shape2d:
             if loop == startLoop:
                 break
         
+        if interior:
+            # flip normals and update shape.firstLoop
+            faces = []
+            for shape in shapes:
+                faces.append(shape.face)
+                shape.firstLoop = shape.firstLoop.link_loop_next
+                shape.origin = shape.firstLoop.vert.co
+            bmesh.ops.reverse_faces(bm, faces = faces)
+        
         # Inherit material from the original shape
         # depending on settings (inheritMaterialAll, inheritMaterialSide, inheritMaterialExtruded).
         # The extruded face in Blender inherits uv-coordinates and material of the original face automatically.
@@ -151,7 +178,7 @@ class Shape2d:
 
         # perform some cleanup
         self.clearUVlayers()
-        return Shape3d(shapes, extrudedFirstLoop, niche=True if depth<0 else False)
+        return Shape3d(shapes, extrudedFirstLoop, niche=True if depth<0 or interior else False)
 
     def getMatrix(self):
         """
@@ -491,8 +518,8 @@ class Rectangle(Shape2d):
         while partIndex<numParts:
             part = parts[partIndex]
             # coordinate along the reference edge
-            coord = part[0]*width
-            depth = part[1]
+            coord = part[0]*width if defs.relativeCoord1 else part[0]
+            depth = part[1]*height if defs.relativeCoord2 else part[1]
             if axis==x:
                 x1 = coord
                 x2 = coord

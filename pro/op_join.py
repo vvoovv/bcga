@@ -9,10 +9,12 @@ class Join(ComplexOperator):
         self.operator = None
         self.args = None
         numArgs = len(args)
-        if numArgs==1:
+        if numArgs: # if numArgs==1:
             operator = args[0]
             if isinstance(operator, Operator) and not hasattr(operator, "value"):
                 self.operator = operator
+            if numArgs>1:
+                self.material = args[1]
         if not self.operator and numArgs:
             self.args = args
         self.kwargs = kwargs

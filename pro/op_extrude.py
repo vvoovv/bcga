@@ -23,7 +23,9 @@ def extrude(depth, *parts, **kwargs):
 
 class Extrude(ComplexOperator):
 	def __init__(self, depth, *parts, **kwargs):
-		self.inheritMaterialAll = False
+		# Are we modelling interior (True) or exterior (True)
+		self.interior = False
+		self.inheritMaterialAll = True
 		self.inheritMaterialSide = False
 		self.inheritMaterialExtruded = False
 		self.keepOriginal = False

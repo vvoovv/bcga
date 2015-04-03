@@ -12,7 +12,12 @@ def extrude2(*args, **kwargs):
 
 class Extrude2(ComplexOperator):
     def __init__(self, *args, **kwargs):
-        self.inheritMaterialAll = False
+        # is the first coordinate (the coordinate along the reference edge) relative or absolute?
+        self.relativeCoord1 = True
+        # is the second coordinate (the coordinate perpendicular to the reference edge) relative or absolute?
+        self.relativeCoord2 = False
+        
+        self.inheritMaterialAll = True
         self.inheritMaterialSection = False
         self.inheritMaterialCap = False
         self.keepOriginal = False

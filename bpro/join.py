@@ -81,7 +81,7 @@ class JoinManager:
                 end1 = neighbor
                 end2 = face
                 firstLoop = firstLoop.link_loop_prev.link_loops[0].link_loop_prev
-            band = Band(end1, end2, firstLoop, operator)
+            band = Band(join, end1, end2, firstLoop, operator)
             band.shapes = self.shapes
             ends1[end1] = band
             ends2[end2] = band
@@ -138,7 +138,8 @@ class JoinManager:
 
 
 class Band:
-    def __init__(self, end1, end2, firstLoop, operator):
+    def __init__(self, join, end1, end2, firstLoop, operator):
+        self.join = join
         # check if need to set operator
         self.operator = operator if operator else None
         self.closed = False
@@ -185,7 +186,11 @@ class Band:
             prevVertEx2 = bm.verts.new(prevVertEx1 + axis)
             prevVertEx1 = bm.verts.new(prevVertEx1)
             # starting rectangle
-            createRectangle((loop.vert, prevVertEx1, prevVertEx2, loop.link_loop_prev.vert))
+            shape = createRectangle((loop.vert, prevVertEx1, prevVertEx2, loop.link_loop_prev.vert))
+            if self.join.material:
+                context.pushState(shape=shape)
+                self.join.material.execute()
+                context.popState()
 
         index = self.end1
         while True:
@@ -204,11 +209,23 @@ class Band:
             vertEx1 = getInset(vert, vec1, vec2, self.getDepth(_loop), self.getDepth(loop), normal, axis)
             vertEx2 = bm.verts.new(vertEx1 + axis)
             vertEx1 = bm.verts.new(vertEx1)
-            createRectangle((prevVertEx1, vertEx1, vertEx2, prevVertEx2))
+            shape = createRectangle((prevVertEx1, vertEx1, vertEx2, prevVertEx2))
+            if self.join.material:
+                context.pushState(shape=shape)
+                self.join.material.execute()
+                context.popState()
             # lower cap
-            createRectangle((_loop.vert, _loopNext.vert, vertEx1, prevVertEx1))
+            shape = createRectangle((_loop.vert, _loopNext.vert, vertEx1, prevVertEx1))
+            if self.join.material:
+                context.pushState(shape=shape)
+                self.join.material.execute()
+                context.popState()
             # upper cap
-            createRectangle((_loopNext.link_loop_next.vert, _loop.link_loop_prev.vert, prevVertEx2, vertEx2))
+            shape = createRectangle((_loopNext.link_loop_next.vert, _loop.link_loop_prev.vert, prevVertEx2, vertEx2))
+            if self.join.material:
+                context.pushState(shape=shape)
+                self.join.material.execute()
+                context.popState()
             
             vec1 = vec2
             vert = vert2
@@ -227,12 +244,28 @@ class Band:
             vertEx1 = bm.verts.new(vertEx1)
             # closing rectangle
             loop = loop.link_loop_next
-            createRectangle((vertEx1, loop.vert, loop.link_loop_next.vert, vertEx2))
-        createRectangle((prevVertEx1, vertEx1, vertEx2, prevVertEx2))
+            shape = createRectangle((vertEx1, loop.vert, loop.link_loop_next.vert, vertEx2))
+            if self.join.material:
+                context.pushState(shape=shape)
+                self.join.material.execute()
+                context.popState()
+        shape = createRectangle((prevVertEx1, vertEx1, vertEx2, prevVertEx2))
+        if self.join.material:
+            context.pushState(shape=shape)
+            self.join.material.execute()
+            context.popState()
         # lower cap
-        createRectangle((_loop.vert, _loopNext.vert, vertEx1, prevVertEx1))
+        shape = createRectangle((_loop.vert, _loopNext.vert, vertEx1, prevVertEx1))
+        if self.join.material:
+            context.pushState(shape=shape)
+            self.join.material.execute()
+            context.popState()
         # upper cap
-        createRectangle((_loopNext.link_loop_next.vert, _loop.link_loop_prev.vert, prevVertEx2, vertEx2))
+        shape = createRectangle((_loopNext.link_loop_next.vert, _loop.link_loop_prev.vert, prevVertEx2, vertEx2))
+        if self.join.material:
+            context.pushState(shape=shape)
+            self.join.material.execute()
+            context.popState()
     
     def getDepth(self, loop):
         index = loop.face.index
