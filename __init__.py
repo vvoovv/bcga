@@ -94,7 +94,7 @@ class ObjectPanel(bpy.types.Panel):
 
 class Pro(bpy.types.Operator):
 	bl_idname = "object.apply_pro_rule"
-	bl_label = "Apply Prokitektura rule"
+	bl_label = "Apply Prokitektura script"
 	bl_options = {"REGISTER", "UNDO"}
 	
 	collectionFloat = bpy.props.CollectionProperty(type=CustomFloatProperty)
