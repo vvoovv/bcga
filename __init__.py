@@ -42,14 +42,14 @@ def getRuleFile(ruleFile, operator):
 	return ruleFile
 	
 
-bpy.types.Scene.ruleFile = bpy.props.StringProperty(
-	name = "Prokitektura script",
+bpy.types.Scene.prokitekturaScript = bpy.props.StringProperty(
+	name = "Script",
 	description = "Path to a Prokitektura script",
 	subtype = "FILE_PATH"
 )
 
-bpy.types.Scene.bakingRuleFile = bpy.props.StringProperty(
-	name = "Low poly Prokitektura script",
+bpy.types.Scene.bakingProkitekturaScript = bpy.props.StringProperty(
+	name = "Low poly script",
 	description = "Path to a Prokitektura script with a low poly model",
 	subtype = "FILE_PATH"
 )
@@ -74,8 +74,8 @@ class ProMainPanel(bpy.types.Panel):
 		layout = self.layout
 		layout.row().operator_menu_enum("object.footprint_set", "size", text="Footprint")
 		layout.separator()
-		layout.row().prop(scene, "ruleFile")
-		layout.row().operator("object.apply_pro_rule")
+		layout.row().prop(scene, "prokitekturaScript")
+		layout.row().operator("object.apply_pro_script")
 
 
 class ObjectPanel(bpy.types.Panel):
@@ -88,13 +88,13 @@ class ObjectPanel(bpy.types.Panel):
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
-		layout.row().prop(scene, "bakingRuleFile")
+		layout.row().prop(scene, "bakingProkitekturaScript")
 		self.layout.operator("object.bake_pro_model")
 
 
 class Pro(bpy.types.Operator):
-	bl_idname = "object.apply_pro_rule"
-	bl_label = "Apply Prokitektura script"
+	bl_idname = "object.apply_pro_script"
+	bl_label = "Apply"
 	bl_options = {"REGISTER", "UNDO"}
 	
 	collectionFloat = bpy.props.CollectionProperty(type=CustomFloatProperty)
@@ -102,7 +102,7 @@ class Pro(bpy.types.Operator):
 	
 	def invoke(self, context, event):
 		proContext.blenderContext = context
-		ruleFile = getRuleFile(context.scene.ruleFile, self)
+		ruleFile = getRuleFile(context.scene.prokitekturaScript, self)
 		if ruleFile:
 			# append the directory of the ruleFile to sys.path
 			ruleFileDirectory = os.path.dirname(os.path.realpath(os.path.expanduser(ruleFile)))
@@ -174,7 +174,7 @@ class Bake(bpy.types.Operator):
 		bpy.ops.object.duplicate()
 		highPolyObject = context.object
 		# high poly model
-		ruleFile = getRuleFile(context.scene.ruleFile, self)
+		ruleFile = getRuleFile(context.scene.prokitekturaScript, self)
 		if ruleFile:
 			highPolyParams = bpro.apply(ruleFile)[1]
 			# convert highPolyParams to a dict paramName->instanceofParamClass
@@ -182,7 +182,7 @@ class Bake(bpy.types.Operator):
 			
 			# low poly model
 			context.scene.objects.active = lowPolyObject
-			ruleFile = getRuleFile(context.scene.bakingRuleFile, self)
+			ruleFile = getRuleFile(context.scene.bakingProkitekturaScript, self)
 			if ruleFile:
 				name = lowPolyObject.name
 				module = bpro.getModule(ruleFile)
