@@ -31,26 +31,26 @@ from bpro.bl_util import create_rectangle, align_view
 
 def getRuleFile(ruleFile, operator):
 	"""
-	Returns full path to a rule file or None if it does not exist.
+	Returns full path to a Prokitektura script or None if it does not exist.
 	"""
 	if len(ruleFile)>1 and ruleFile[:2]=="//":
 		ruleFile = ruleFile[2:]
 	ruleFile = os.path.join(os.path.dirname(bpy.data.filepath), ruleFile)
 	if not os.path.isfile(ruleFile):
-		operator.report({"ERROR"}, "The rule file %s not found" % ruleFile)
+		operator.report({"ERROR"}, "The Prokitektura script %s not found" % ruleFile)
 		ruleFile = None
 	return ruleFile
 	
 
 bpy.types.Scene.ruleFile = bpy.props.StringProperty(
-	name = "Rule file",
-	description = "Path to a rule file",
+	name = "Prokitektura script",
+	description = "Path to a Prokitektura script",
 	subtype = "FILE_PATH"
 )
 
 bpy.types.Scene.bakingRuleFile = bpy.props.StringProperty(
-	name = "Low poly rule file",
-	description = "Path to a rule file for a low poly model",
+	name = "Low poly Prokitektura script",
+	description = "Path to a Prokitektura script with a low poly model",
 	subtype = "FILE_PATH"
 )
 
