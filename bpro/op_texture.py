@@ -28,12 +28,10 @@ class Texture(Operator):
             path = self.path
             name = os.path.basename(path)
             material = materialManager.getMaterial(name)
+            if not material:
+                material = materialManager.createMaterial(name, (self,))
             if material:
                 materialIndex = materialManager.getMaterialIndex(name)
-            else:
-                materialManager.createMaterial(name, (self,))
-                materialIndex = materialManager.getMaterialIndex(name)
-                
-            shape.face.material_index = materialIndex
-            # set preview texture
-            materialManager.setPreviewTexture(shape, materialIndex)
+                shape.face.material_index = materialIndex
+                # set preview texture
+                materialManager.setPreviewTexture(shape, materialIndex)

@@ -59,8 +59,13 @@ class MaterialManager:
         Creates a new material and calls self.setMaterial(...)
         """
         engine = context.blenderContext.scene.render.engine
-        material = self.engines[engine].createMaterial(name, textures)
-        self.setMaterial(name, material)
+        try:
+            material = self.engines[engine].createMaterial(name, textures)
+        except RuntimeError:
+            material = None
+        else:
+            self.setMaterial(name, material)
+        return material
 
     def setPreviewTexture(self, shape, materialIndex):
         # a slot for the texture
