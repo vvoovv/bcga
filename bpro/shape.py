@@ -43,7 +43,7 @@ def createRectangle(verts):
 
 def createShape2d(verts):
     face = context.bm.faces.new(verts)
-    return Shape2d(face.loops[0])    
+    return Shape2d(face.loops[0]) 
 
 
 class Shape2d:

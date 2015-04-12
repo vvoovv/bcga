@@ -19,6 +19,8 @@ from .op_inset import Inset
 from .op_inset2 import Inset2
 from .op_rectangle import Rectangle
 from .op_hip_roof import HipRoof
+from .op_copy import Copy
+from .op_translate import Translate
 
 from pro.base import Param
 
@@ -40,6 +42,8 @@ def buildFactory():
 	factory["Inset2"] = Inset2
 	factory["Rectangle"] = Rectangle
 	factory["HipRoof"] = HipRoof
+	factory["Copy"] = Copy
+	factory["Translate"] = Translate
 
 def apply(ruleFile, startRule="Begin"):
 	from .bl_util import create_rectangle

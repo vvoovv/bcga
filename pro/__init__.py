@@ -19,6 +19,10 @@ from .op_rectangle import rectangle
 
 from .op_hip_roof import hip_roof
 
+from .op_copy import copy
+
+from .op_translate import translate
+
 from .base import flt, rel
 from .base import shape
 from .base import param, random
