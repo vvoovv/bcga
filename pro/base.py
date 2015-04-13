@@ -74,7 +74,11 @@ class Operator:
 		pass
 	
 	def __call__(self):
-		context.operator.addChildOperator(self)
+		# NOTE: the line context.operator.addChildOperator(self) was required before
+		# to avoid error.
+		# Now that line causes eroor, so it was commented out
+		#context.operator.addChildOperator(self)
+		return self
 	
 	def __str__(self):
 		return self.__class__.__name__
