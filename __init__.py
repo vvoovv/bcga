@@ -27,7 +27,7 @@ import bpro
 from pro import context as proContext
 from pro.base import ParamFloat, ParamColor
 
-from bpro.bl_util import create_rectangle, align_view
+from bpro.bl_util import create_rectangle, align_view, first_edge_ymin
 
 def getRuleFile(ruleFile, operator):
 	"""
@@ -78,7 +78,7 @@ class ProMainPanel(bpy.types.Panel):
 		layout.row().operator("object.apply_pro_script")
 
 
-class ObjectPanel(bpy.types.Panel):
+class BakingPanel(bpy.types.Panel):
 	bl_label = "Baking"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "TOOLS"
@@ -90,6 +90,17 @@ class ObjectPanel(bpy.types.Panel):
 		layout = self.layout
 		layout.row().prop(scene, "bakingProkitekturaScript")
 		self.layout.operator("object.bake_pro_model")
+
+
+class FirstEdgePanel(bpy.types.Panel):
+	bl_label = "First edge"
+	bl_space_type = "VIEW_3D"
+	bl_region_type = "TOOLS"
+	bl_category = "Prokitektura"
+	bl_options = {"DEFAULT_CLOSED"}
+	
+	def draw(self, context):
+		self.layout.operator("object.first_edge_ymin")
 
 
 class Pro(bpy.types.Operator):
@@ -270,6 +281,17 @@ class FootprintSet(bpy.types.Operator):
 		create_rectangle(context, w, h)
 		align_view(context.object)
 		
+		return {"FINISHED"}
+
+
+class FirstEdgeYmin(bpy.types.Operator):
+	bl_idname = "object.first_edge_ymin"
+	bl_label = "Ends at min Y"
+	bl_description = "The first edge ends at the vertex with minimal Y coordinate"
+	bl_options = {"REGISTER", "UNDO"}
+	
+	def execute(self, context):
+		first_edge_ymin(context)
 		return {"FINISHED"}
 
 

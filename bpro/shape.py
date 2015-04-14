@@ -92,7 +92,7 @@ class Shape2d:
             _loops = oppositeLoop.link_loops
             if len(_loops)==1 and _loops[0].face==extrudedFace:
                 break
-        extrudedFirstLoop = _loops[0]
+        extrudedFirstLoop = self.firstLoop if interior else _loops[0]
         
         # now we have a 3D shape
         # build a list of 2D shapes (faces) that costitute the 3D shape
@@ -143,8 +143,9 @@ class Shape2d:
             faces = []
             for shape in shapes:
                 faces.append(shape.face)
-                shape.firstLoop = shape.firstLoop.link_loop_next
-                shape.origin = shape.firstLoop.vert.co
+                if shape != self:
+                    shape.firstLoop = shape.firstLoop.link_loop_next
+                    shape.origin = shape.firstLoop.vert.co
             bmesh.ops.reverse_faces(bm, faces = faces)
         
         # Inherit material from the original shape
