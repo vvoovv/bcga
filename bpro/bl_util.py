@@ -1,5 +1,4 @@
 import bpy, bmesh
-from .util import zero
 newObjectName = "Prokitektura"
 
 def create_rectangle(blenderContext, sizeX, sizeY):
@@ -26,7 +25,7 @@ def align_view(obj):
 
 def first_edge_ymin(blenderContext):
     """
-    Rearranges vertices in a face so the first edge ends at the vertex with minimal Y coordinate
+    Rearranges vertices in a face so the first edge contains the vertex with minimal Y coordinate
     """
     if not blenderContext.object:
         return
@@ -39,23 +38,27 @@ def first_edge_ymin(blenderContext):
     
     face = bm.faces[0]
     loops = face.loops
-    # find the loop with minimal Y coord and minimal X coord
+    # find the loop with minimal Y coord
     minY = float("inf")
-    maxX = float("-inf")
     loop = loops[0]
     startLoop = loop
     firstLoop = loop
     while True:
-        x,y,z = loop.vert.co
-        if ( abs(y-minY)<zero and x>maxX ) or y<minY:
+        y = loop.vert.co[1]
+        if y<minY:
             firstLoop = loop
-            maxX = x
             minY = y
         loop = loop.link_loop_next
         if loop == startLoop:
             break
     
-    firstLoop = firstLoop.link_loop_prev
+    # Now the problem: which of the two edges containing loop.vert
+    # shall we select as the first edge
+    # Solution: select the edge with the smallest length as the first edge
+    len1 = firstLoop.edge.calc_length()
+    len2 = firstLoop.link_loop_prev.edge.calc_length()
+    if len2 < len1:
+        firstLoop = firstLoop.link_loop_prev
     
     if firstLoop != startLoop:
         # rearrange vertices

@@ -286,8 +286,8 @@ class FootprintSet(bpy.types.Operator):
 
 class FirstEdgeYmin(bpy.types.Operator):
 	bl_idname = "object.first_edge_ymin"
-	bl_label = "Ends at min Y"
-	bl_description = "The first edge ends at the vertex with minimal Y coordinate"
+	bl_label = "Contains min Y"
+	bl_description = "The first edge contains the vertex with minimal Y coordinate"
 	bl_options = {"REGISTER", "UNDO"}
 	
 	def execute(self, context):
