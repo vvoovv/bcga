@@ -57,7 +57,7 @@ def first_edge_ymin(blenderContext):
     # Solution: select the edge with the smallest length as the first edge
     len1 = firstLoop.edge.calc_length()
     len2 = firstLoop.link_loop_prev.edge.calc_length()
-    if len2 < len1:
+    if len2 > len1:
         firstLoop = firstLoop.link_loop_prev
     
     if firstLoop != startLoop:
