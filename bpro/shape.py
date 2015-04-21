@@ -537,7 +537,10 @@ class Rectangle(Shape2d):
             # vert2
             vert2 = matrix*mathutils.Vector((x2, y2, depth))
             vert2 = bm.verts.new(vert2)
-            verts = (prevVert1, vert1, vert2, prevVert2) if axis==x else (prevVert1, prevVert2, vert2, vert1)
+            if axis==x:
+                verts = (prevVert1, vert1, vert2, prevVert2) if not defs.flipNormal else (vert1, prevVert1, prevVert2, vert2)
+            else:
+                verts = (prevVert1, prevVert2, vert2, vert1) if not defs.flipNormal else (vert1, vert2, prevVert2, prevVert1)
             shape = createRectangle(verts)
             # inherit material if necessary
             if defs.inheritMaterialAll or defs.inheritMaterialSection:
@@ -565,7 +568,10 @@ class Rectangle(Shape2d):
         vert1 = firstLoop.link_loop_next if axis==x else firstLoop.link_loop_prev
         vert2 = (vert1.link_loop_next if axis==x else vert1.link_loop_prev).vert
         vert1 = vert1.vert
-        verts = (prevVert1, vert1, vert2, prevVert2) if axis==x else (prevVert1, prevVert2, vert2, vert1)
+        if axis==x:
+            verts = (prevVert1, vert1, vert2, prevVert2) if not defs.flipNormal else (vert1, prevVert1, prevVert2, vert2)
+        else:
+            verts = (prevVert1, prevVert2, vert2, vert1) if not defs.flipNormal else (vert1, vert2, prevVert2, prevVert1)
         shape = createRectangle(verts)
         # inherit material if necessary
         if defs.inheritMaterialAll or defs.inheritMaterialSection:
@@ -628,7 +634,10 @@ class Rectangle(Shape2d):
                 # _cape2 is the rule for shape
                 shapesWithRule.append((shape, _cap2))
         
-        if not defs.keepOriginal:
+        if defs.keepOriginal:
+            if defs.original:
+                shapesWithRule.append((self, defs.original))
+        else:
             context.facesForRemoval.append(self.face)
             
         return shapesWithRule

@@ -247,6 +247,7 @@ class Context:
 
 
 def shape():
+	"""Returns the current (top) shape from the stack""
 	context.operator.executeChildOperators()
 	return context.getState().shape
 

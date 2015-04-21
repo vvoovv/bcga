@@ -22,8 +22,9 @@ class Extrude2(ComplexOperator):
         self.inheritMaterialCap = False
         self.keepOriginal = False
         self.symmetric = True
-        self.rel = True
         self.axis = pro.x
+        # shall we the normal for each extruded section?
+        self.flipNormal = False
         # a rule for extruded section
         self.section = None
         # a rule for the last section
@@ -38,6 +39,7 @@ class Extrude2(ComplexOperator):
         self.original = None
         # a rule for the middle face on for the symmetric case (self.symmetric==True)
         self.middle = None
+        
         # apply kwargs
         for k in kwargs:
             setattr(self, k, kwargs[k])
@@ -75,8 +77,10 @@ class Extrude2(ComplexOperator):
                     arg.count = False
                     numOperators += 1
                 argIndex += 1
-        # update part for self.symmetric = True
-        if self.symmetric:
+        # Update parts for self.symmetric = True and self.relativeCoord1 = True
+        # The case self.symmetric = True and self.relativeCoord1 = False will be treated in self.execute(),
+        # since we don't know right now the absolute shape size
+        if self.symmetric and self.relativeCoord1:
             argIndex = len(parts)-1
             # Treat the special case when there is no segment crossing 0.5 and parallel to the reference axis
             if parts[-1][0]!=0.5:
