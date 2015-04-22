@@ -634,7 +634,7 @@ class Rectangle(Shape2d):
                 # _cape2 is the rule for shape
                 shapesWithRule.append((shape, _cap2))
         
-        if defs.keepOriginal:
+        if defs.keepOriginal or defs.original:
             if defs.original:
                 shapesWithRule.append((self, defs.original))
         else:

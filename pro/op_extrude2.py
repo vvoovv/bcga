@@ -20,6 +20,8 @@ class Extrude2(ComplexOperator):
         self.inheritMaterialAll = True
         self.inheritMaterialSection = False
         self.inheritMaterialCap = False
+        # Note: the original shape is kept irrespective of self.keepOriginal if
+        # self.original is set
         self.keepOriginal = False
         self.symmetric = True
         self.axis = pro.x
