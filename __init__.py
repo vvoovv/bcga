@@ -122,7 +122,7 @@ class Pro(bpy.types.Operator):
 
 			module,params = bpro.apply(ruleFile)
 			
-			align_view(context.object)
+			#align_view(context.object)
 			
 			self.module = module
 			self.params = params
@@ -153,7 +153,7 @@ class Pro(bpy.types.Operator):
 			if paramCounter==9:break
 		bpro.apply(self.module)
 		
-		align_view(context.object)
+		#align_view(context.object)
 		
 		return {"FINISHED"}
 	
