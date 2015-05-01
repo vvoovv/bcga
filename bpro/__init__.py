@@ -69,11 +69,12 @@ def apply(ruleFile, startRule="Begin"):
 	# TODO: a separate pass through the rules is needed to find out how many uv layers are needed 
 	mesh.uv_textures.new(Texture.defaultLayer)
 	# all operations will be done in the EDIT mode
-	bpy.ops.object.mode_set(mode="EDIT")
+	#bpy.ops.object.mode_set(mode="EDIT")
 	# initialize the context
 	context.init()
-	# setting bmesh instance
-	bm = bmesh.from_edit_mesh(mesh)
+	# initializing bmesh instance
+	bm = bmesh.new()
+	bm.from_mesh(mesh)
 	if hasattr(bm.faces, "ensure_lookup_table"):
 		bm.faces.ensure_lookup_table()
 	context.addAttribute("bm", bm)
@@ -119,10 +120,10 @@ def apply(ruleFile, startRule="Begin"):
 	# remove unused faces from context.facesForRemoval
 	bmesh.ops.delete(bm, geom=context.facesForRemoval, context=5)
 	
-	# update mesh
-	bmesh.update_edit_mesh(mesh)
+	# write everything back to the mesh
+	bm.to_mesh(mesh)
 	# set OBJECT mode
-	bpy.ops.object.mode_set(mode="OBJECT")
+	#bpy.ops.object.mode_set(mode="OBJECT")
 	# cleaning context from blender specific members
 	context.removeAttributes()
 	
