@@ -68,8 +68,6 @@ def apply(ruleFile, startRule="Begin"):
 	# create a uv layer for the mesh
 	# TODO: a separate pass through the rules is needed to find out how many uv layers are needed 
 	mesh.uv_textures.new(Texture.defaultLayer)
-	# all operations will be done in the EDIT mode
-	#bpy.ops.object.mode_set(mode="EDIT")
 	# initialize the context
 	context.init()
 	# initializing bmesh instance
@@ -122,8 +120,6 @@ def apply(ruleFile, startRule="Begin"):
 	
 	# write everything back to the mesh
 	bm.to_mesh(mesh)
-	# set OBJECT mode
-	#bpy.ops.object.mode_set(mode="OBJECT")
 	# cleaning context from blender specific members
 	context.removeAttributes()
 	
