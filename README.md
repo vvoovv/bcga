@@ -16,7 +16,7 @@ The basic concepts of BCGA are explained in the [tutorial](https://github.com/vv
 
 twitter: [@prokitektura](https://twitter.com/prokitektura)
 
-Thread at blenderartists.org: http://blenderartists.org/forum/showthread.php?351081-Addon-WIP-Prokitektura-procedural-generation-of-architectural-3D-models
+Thread at blenderartists.org: http://blenderartists.org/forum/showthread.php?351081-Addon-BCGA-Computer-Generated-Architecture-for-Blender-3D-buildings-with-Python
 
 
 ## Donations
