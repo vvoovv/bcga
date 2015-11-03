@@ -9,8 +9,8 @@ Some parameters of the set of rules can be defined as accessible from outside. T
 Prokitektura can be used to code existing buildings from a number of photos as well as to generate imaginary cities with desired styles of buildings.
 
 Example sets of prokitektura rules:
-* [simple01.py](https://github.com/vvoovv/prokitektura-examples/blob/master/examples/simple01.py), [video](https://www.youtube.com/watch?v=GixKhqrdANs)
-* [house_01.py](https://github.com/vvoovv/prokitektura-examples/blob/master/examples/house_01.py), [video](http://www.youtube.com/watch?v=ZJDHtPAF9d8)
+* [simple01.py](https://github.com/vvoovv/bcga-examples/blob/master/examples/simple01.py), [video](https://www.youtube.com/watch?v=GixKhqrdANs)
+* [house_01.py](https://github.com/vvoovv/bcga-examples/blob/master/examples/house_01.py), [video](http://www.youtube.com/watch?v=ZJDHtPAF9d8)
 
 The basic concepts of BCGA are explained in the [tutorial](https://github.com/vvoovv/bcga/wiki/Tutorial).
 
