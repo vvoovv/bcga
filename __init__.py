@@ -12,6 +12,9 @@ bl_info = {
 	"category": "BCGA",
 }
 
+numFloatParams = 200
+numColorParams = 50
+
 import sys, os, math
 for path in sys.path:
 	if "bpro" in path:
@@ -111,7 +114,19 @@ class Pro(bpy.types.Operator):
 	collectionFloat = bpy.props.CollectionProperty(type=CustomFloatProperty)
 	collectionColor = bpy.props.CollectionProperty(type=CustomColorProperty)
 	
+	initialized = False
+	
+	def initialize(self):
+		if self.initialized:
+			return
+		for _ in range(numFloatParams):
+			self.collectionFloat.add()
+		for _ in range(numColorParams):
+			self.collectionColor.add()
+		self.initialized = True
+	
 	def invoke(self, context, event):
+		self.initialize()
 		proContext.blenderContext = context
 		ruleFile = getRuleFile(context.scene.bcgaScript, self)
 		if ruleFile:
@@ -126,31 +141,26 @@ class Pro(bpy.types.Operator):
 			
 			self.module = module
 			self.params = params
-			# new params arrived, so clean all collections
-			self.collectionFloat.clear()
-			self.collectionColor.clear()
-			paramCounter = 0
+			numFloats = 0
+			numColors = 0
 			# for each entry in self.params create a new item in self.collection
 			for param in self.params:
 				param = param[1]
 				if isinstance(param, ParamFloat):
-					collectionItem = self.collectionFloat.add()
+					collectionItem = self.collectionFloat[numFloats]
+					numFloats += 1
 				elif isinstance(param, ParamColor):
-					collectionItem = self.collectionColor.add()
+					collectionItem = self.collectionColor[numColors]
+					numColors += 1
 				collectionItem.value = param.getValue()
 				param.collectionItem = collectionItem
-				paramCounter += 1
-				if paramCounter==9:break
 		return {"FINISHED"}
 	
 	def execute(self, context):
 		proContext.blenderContext = context
-		paramCounter = 0
 		for param in self.params:
 			param = param[1]
 			param.setValue(getattr(param.collectionItem, "value"))
-			paramCounter += 1
-			if paramCounter==9:break
 		bpro.apply(self.module)
 		
 		#align_view(context.object)
@@ -160,15 +170,12 @@ class Pro(bpy.types.Operator):
 	def draw(self, context):
 		layout = self.layout
 		if hasattr(self, "params"):
-			paramCounter = 0
 			# self.params is a list of tuples: (paramName, instanceofParamClass)
 			for param in self.params:
 				paramName = param[0]
 				row = layout.split()
 				row.label(paramName+":")
 				row.prop(param[1].collectionItem, "value")
-				paramCounter += 1
-				if paramCounter==9:break
 
 
 class Bake(bpy.types.Operator):
