@@ -1,5 +1,5 @@
 import bpy, bmesh
-newObjectName = "Prokitektura"
+newObjectName = "BCGA"
 
 def create_rectangle(blenderContext, sizeX, sizeY):
     sizeX /= 2

@@ -136,7 +136,7 @@ class Polygon:
                     del sequences[_id]
                     numSequences -= 1
 
-        # create faces and Prokitektura shapes for the straight skeleton
+        # create faces and BCGA shapes for the straight skeleton
         for edge in self.edges:
             edge.leftVerts.reverse()
             face = [edge.leftVerts.pop()]

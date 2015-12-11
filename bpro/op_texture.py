@@ -7,7 +7,7 @@ from pro.base import Operator
 
 class Texture(Operator):
     
-    defaultLayer = "prokitektura"
+    defaultLayer = "bcga"
     
     def __init__(self, path, width, height, **kwargs):
         self.path = os.path.join(os.path.dirname(context.ruleFile), "assets", path)

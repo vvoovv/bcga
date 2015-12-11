@@ -1,15 +1,15 @@
 bl_info = {
-	"name": "Prokitektura",
+	"name": "BCGA",
 	"author": "Vladimir Elistratov <vladimir.elistratov@gmail.com>",
 	"version": (0, 0, 0),
-	"blender": (2, 7, 3),
+	"blender": (2, 7, 6),
 	"location": "View3D > Tool Shelf",
-	"description": "Prokitektura implementation for Blender",
+	"description": "BCGA: Computer Generated Architecture for Blender",
 	"warning": "",
-	"wiki_url": "https://github.com/prokitektura/prokitektura-blender/wiki/",
-	"tracker_url": "https://github.com/prokitektura/prokitektura-blender/issues",
+	"wiki_url": "https://github.com/vvoovv/bcga/wiki",
+	"tracker_url": "https://github.com/vvoovv/bcga/issues",
 	"support": "COMMUNITY",
-	"category": "Prokitektura",
+	"category": "BCGA",
 }
 
 import sys, os, math
@@ -31,26 +31,26 @@ from bpro.bl_util import create_rectangle, align_view, first_edge_ymin
 
 def getRuleFile(ruleFile, operator):
 	"""
-	Returns full path to a Prokitektura script or None if it does not exist.
+	Returns full path to a BCGA script or None if it does not exist.
 	"""
 	if len(ruleFile)>1 and ruleFile[:2]=="//":
 		ruleFile = ruleFile[2:]
 	ruleFile = os.path.join(os.path.dirname(bpy.data.filepath), ruleFile)
 	if not os.path.isfile(ruleFile):
-		operator.report({"ERROR"}, "The Prokitektura script %s not found" % ruleFile)
+		operator.report({"ERROR"}, "The BCGA script %s not found" % ruleFile)
 		ruleFile = None
 	return ruleFile
 	
 
-bpy.types.Scene.prokitekturaScript = bpy.props.StringProperty(
+bpy.types.Scene.bcgaScript = bpy.props.StringProperty(
 	name = "Script",
-	description = "Path to a Prokitektura script",
+	description = "Path to a BCGA script",
 	subtype = "FILE_PATH"
 )
 
-bpy.types.Scene.bakingProkitekturaScript = bpy.props.StringProperty(
+bpy.types.Scene.bakingBcgaScript = bpy.props.StringProperty(
 	name = "Low poly script",
-	description = "Path to a Prokitektura script with a low poly model",
+	description = "Path to a BCGA script with a low poly model",
 	subtype = "FILE_PATH"
 )
 
@@ -67,14 +67,14 @@ class ProMainPanel(bpy.types.Panel):
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "TOOLS"
 	#bl_context = "objectmode"
-	bl_category = "Prokitektura"
+	bl_category = "BCGA"
 	
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
 		layout.row().operator_menu_enum("object.footprint_set", "size", text="Footprint")
 		layout.separator()
-		layout.row().prop(scene, "prokitekturaScript")
+		layout.row().prop(scene, "bcgaScript")
 		layout.row().operator("object.apply_pro_script")
 
 
@@ -82,13 +82,13 @@ class BakingPanel(bpy.types.Panel):
 	bl_label = "Baking"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "TOOLS"
-	bl_category = "Prokitektura"
+	bl_category = "BCGA"
 	bl_options = {"DEFAULT_CLOSED"}
 	
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
-		layout.row().prop(scene, "bakingProkitekturaScript")
+		layout.row().prop(scene, "bakingBcgaScript")
 		self.layout.operator("object.bake_pro_model")
 
 
@@ -96,7 +96,7 @@ class FirstEdgePanel(bpy.types.Panel):
 	bl_label = "First edge"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "TOOLS"
-	bl_category = "Prokitektura"
+	bl_category = "BCGA"
 	bl_options = {"DEFAULT_CLOSED"}
 	
 	def draw(self, context):
@@ -113,7 +113,7 @@ class Pro(bpy.types.Operator):
 	
 	def invoke(self, context, event):
 		proContext.blenderContext = context
-		ruleFile = getRuleFile(context.scene.prokitekturaScript, self)
+		ruleFile = getRuleFile(context.scene.bcgaScript, self)
 		if ruleFile:
 			# append the directory of the ruleFile to sys.path
 			ruleFileDirectory = os.path.dirname(os.path.realpath(os.path.expanduser(ruleFile)))
@@ -185,7 +185,7 @@ class Bake(bpy.types.Operator):
 		bpy.ops.object.duplicate()
 		highPolyObject = context.object
 		# high poly model
-		ruleFile = getRuleFile(context.scene.prokitekturaScript, self)
+		ruleFile = getRuleFile(context.scene.bcgaScript, self)
 		if ruleFile:
 			highPolyParams = bpro.apply(ruleFile)[1]
 			# convert highPolyParams to a dict paramName->instanceofParamClass
@@ -193,7 +193,7 @@ class Bake(bpy.types.Operator):
 			
 			# low poly model
 			context.scene.objects.active = lowPolyObject
-			ruleFile = getRuleFile(context.scene.bakingProkitekturaScript, self)
+			ruleFile = getRuleFile(context.scene.bakingBcgaScript, self)
 			if ruleFile:
 				name = lowPolyObject.name
 				module = bpro.getModule(ruleFile)
@@ -234,15 +234,15 @@ class Bake(bpy.types.Operator):
 				textureSlot = material.texture_slots.add()
 				textureSlot.texture = blenderTexture
 				textureSlot.texture_coords = "UV"
-				textureSlot.uv_layer = "prokitektura"
+				textureSlot.uv_layer = "bcga"
 				lowPolyObject.data.materials.append(material)
 		return {"FINISHED"}
 
 
 class FootprintSet(bpy.types.Operator):
 	bl_idname = "object.footprint_set"
-	bl_label = "Prokitektura footprint"
-	bl_description = "Set a building footprint for Prokitektura"
+	bl_label = "BCGA footprint"
+	bl_description = "Set a building footprint for BCGA"
 	bl_options = {"REGISTER", "UNDO"}
 	
 	size = bpy.props.EnumProperty(
