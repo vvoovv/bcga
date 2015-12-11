@@ -24,7 +24,7 @@ class Modifier:
 
 def countOperator(o):
 	"""
-	A helper function that checks if its argument must be counted as Prokitektura Operator
+	A helper function that checks if its argument must be counted as BCGA Operator
 	in a constructor of the other operators. Every operator can be counted once.
 	The function also sets count attribute to False in the positive case when it returns True
 	
@@ -119,7 +119,7 @@ class Rule(ComplexOperator):
 		self.operator = operator
 		self.args = args
 		self.kwargs = kwargs
-		# count how many Prokitektura operators we have in args and kwargs
+		# count how many BCGA operators we have in args and kwargs
 		numParts = 0
 		for arg in args:
 			if countOperator(arg):
@@ -270,6 +270,9 @@ def random(low, high):
 class Param:
 	def setValue(self, value):
 		self.value = value
+		
+	def __str__(self):
+		return str(self.value)
 	
 	def getValue(self):
 		return self.value
@@ -291,7 +294,7 @@ class ParamFloat(Param):
 	def assignValue(self):
 		"""Assigns a value for the parameter. Relevant only for random parameters"""
 		if self.random:
-			self.value = randomlib.uniform(self.random.low, self.random.high)
+			self.value = self.random.getValue()
 	
 	def __float__(self):
 		return float(self.value)
@@ -331,9 +334,6 @@ class ParamColor(Param):
 	def __init__(self, value):
 		self.value = value
 	
-	def __str__(self):
-		return self.value
-	
 	def getValue(self):
 		# convert from the hex string to a tuple
 		return tuple( map(lambda c: c/255, bytes.fromhex(self.value[-6:])) )
@@ -342,10 +342,53 @@ class ParamColor(Param):
 		# convert from the tuple to a hex string
 		self.value = "#%02x%02x%02x" % tuple( map(lambda c: round(c*255), value) )
 
+
 class Random:
 	def __init__(self, low, high):
+		self.value = None
 		self.low = low
 		self.high = high
+	
+	def getValue(self):
+		if self.value is None:
+			self.value = randomlib.uniform(self.low, self.high)
+		return self.value
+	
+	def __str__(self):
+		return str(self.getValue())
+
+	def __float__(self):
+		return float(self.getValue())
+	
+	def __add__(self, other):
+		return self.getValue() + other
+	
+	def __radd__(self, other):
+		return other + self.getValue()
+	
+	def __sub__(self, other):
+		return self.getValue() - other
+	
+	def __rsub__(self, other):
+		return other - self.getValue()
+	
+	def __mul__(self, other):
+		return self.getValue() * other
+	
+	def __rmul__(self, other):
+		return other * self.getValue()
+	
+	def __truediv__(self, other):
+		return self.getValue()/other
+	
+	def __rtruediv__(self, other):
+		return other/self.getValue()
+	
+	def __neg__(self):
+		return -self.getValue()
+	
+	def __abs__(self):
+		return abs(self.getValue())
 
 
 context = Context()
