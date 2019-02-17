@@ -688,7 +688,7 @@ class Shape3d:
         rotationMatrix = self.getRotationMatrix()
         for shape in self.shapes:
             # get normal in the 3D-shape coordinate system
-            normal = rotationMatrix * shape.face.normal
+            normal = rotationMatrix @ shape.face.normal
             # classify the 2D-shape
             if abs(normal[2]) > horizontalFaceThreshold:
                 # the 2D-shape is horizontal
