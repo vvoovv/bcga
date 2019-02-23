@@ -1,5 +1,7 @@
-import bpy, bmesh
+import bpy
+import bmesh
 newObjectName = "BCGA"
+
 
 def create_rectangle(blenderContext, sizeX, sizeY):
     sizeX /= 2
@@ -9,17 +11,18 @@ def create_rectangle(blenderContext, sizeX, sizeY):
     scene = blenderContext.scene
     mesh = bpy.data.meshes.new(newObjectName)
     mesh.from_pydata(
-        ((-sizeX,-sizeY,0), (sizeX,-sizeY,0), (sizeX,sizeY,0), (-sizeX,sizeY,0)), [], ((0,1,2,3),)
+        ((-sizeX, -sizeY, 0), (sizeX, -sizeY, 0),
+         (sizeX, sizeY, 0), (-sizeX, sizeY, 0)), [], ((0, 1, 2, 3),)
     )
     obj = bpy.data.objects.new(newObjectName, mesh)
     obj.location = scene.cursor_location
-    scene.objects.link(obj)
-    scene.objects.active = obj
+    scene.collection.objects.link(obj)
+    bpy.context.view_layer.objects.active = obj
     mesh.update()
 
 
 def align_view(obj):
-    obj.select = True
+    obj.select_set(state=True, view_layer=None)
     bpy.ops.view3d.view_selected()
 
 
@@ -35,7 +38,7 @@ def first_edge_ymin(blenderContext):
     bm = bmesh.from_edit_mesh(blenderContext.object.data)
     if hasattr(bm.faces, "ensure_lookup_table"):
         bm.faces.ensure_lookup_table()
-    
+
     face = bm.faces[0]
     loops = face.loops
     # find the loop with minimal Y coord
@@ -45,13 +48,13 @@ def first_edge_ymin(blenderContext):
     firstLoop = loop
     while True:
         y = loop.vert.co[1]
-        if y<minY:
+        if y < minY:
             firstLoop = loop
             minY = y
         loop = loop.link_loop_next
         if loop == startLoop:
             break
-    
+
     # Now the problem: which of the two edges containing loop.vert
     # shall we select as the first edge
     # Solution: select the edge with the smallest length as the first edge
@@ -59,7 +62,7 @@ def first_edge_ymin(blenderContext):
     len2 = firstLoop.link_loop_prev.edge.calc_length()
     if len2 > len1:
         firstLoop = firstLoop.link_loop_prev
-    
+
     if firstLoop != startLoop:
         # rearrange vertices
         startLoop = firstLoop
@@ -74,5 +77,5 @@ def first_edge_ymin(blenderContext):
         bm.faces.new(verts)
         # update mesh
         bmesh.update_edit_mesh(mesh)
-    
+
     bpy.ops.object.mode_set(mode="OBJECT")

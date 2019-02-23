@@ -9,6 +9,7 @@ from .op_extrude2 import extrude2
 from .op_extrude2 import middle, section, cap1, cap2, cap
 
 from .op_color import color
+from .op_material import material
 from .op_texture import texture
 from .op_delete import delete
 from .op_join import join
@@ -33,17 +34,19 @@ x = "x"
 y = "y"
 z = "z"
 
-face = "face" # hip_roof
-soffit = "soffit" # hip_roof
-fascia = "fascia" # hip_roof
+face = "face"  # hip_roof
+soffit = "soffit"  # hip_roof
+fascia = "fascia"  # hip_roof
 
 original = "original"
 last = "last"
 
+
 def rule(operator):
-	def inner(*args, **kwargs):
-			return Rule(operator, args, kwargs)
-	return inner
+    def inner(*args, **kwargs):
+        return Rule(operator, args, kwargs)
+    return inner
+
 
 def repeat(*args):
-	return args
+    return args

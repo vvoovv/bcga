@@ -1,8 +1,12 @@
+import math
+import os
+import sys
+
 bl_info = {
 	"name": "BCGA",
 	"author": "Vladimir Elistratov <vladimir.elistratov@gmail.com>",
-	"version": (0, 0, 0),
-	"blender": (2, 7, 6),
+	"version": (1, 0, 0),
+	"blender": (2, 80, 0),
 	"location": "View3D > Tool Shelf",
 	"description": "BCGA: Computer Generated Architecture for Blender",
 	"warning": "",
@@ -15,7 +19,6 @@ bl_info = {
 numFloatParams = 200
 numColorParams = 50
 
-import sys, os, math
 for path in sys.path:
 	if "bpro" in path:
 		path = None
@@ -32,6 +35,7 @@ from pro.base import ParamFloat, ParamColor
 
 from bpro.bl_util import create_rectangle, align_view, first_edge_ymin
 
+
 def getRuleFile(ruleFile, operator):
 	"""
 	Returns full path to a BCGA script or None if it does not exist.
@@ -40,35 +44,32 @@ def getRuleFile(ruleFile, operator):
 		ruleFile = ruleFile[2:]
 	ruleFile = os.path.join(os.path.dirname(bpy.data.filepath), ruleFile)
 	if not os.path.isfile(ruleFile):
-		operator.report({"ERROR"}, "The BCGA script %s not found" % ruleFile)
+		operator.report({"ERROR"}, "The BCGA script '%s' not found" % ruleFile)
 		ruleFile = None
 	return ruleFile
 	
-
 bpy.types.Scene.bcgaScript = bpy.props.StringProperty(
 	name = "Script",
 	description = "Path to a BCGA script",
-	subtype = "FILE_PATH"
 )
 
 bpy.types.Scene.bakingBcgaScript = bpy.props.StringProperty(
 	name = "Low poly script",
 	description = "Path to a BCGA script with a low poly model",
-	subtype = "FILE_PATH"
 )
 
 class CustomFloatProperty(bpy.types.PropertyGroup):
 	"""A bpy.types.PropertyGroup descendant for bpy.props.CollectionProperty"""
-	value = bpy.props.FloatProperty(name="")
+	value: bpy.props.FloatProperty(name="")
 
 class CustomColorProperty(bpy.types.PropertyGroup):
 	"""A bpy.types.PropertyGroup descendant for bpy.props.CollectionProperty"""
-	value = bpy.props.FloatVectorProperty(name="", subtype='COLOR', min=0.0, max=1.0)
+	value: bpy.props.FloatVectorProperty(name="", subtype='COLOR', min=0.0, max=1.0)
 
 class ProMainPanel(bpy.types.Panel):
 	bl_label = "Main"
 	bl_space_type = "VIEW_3D"
-	bl_region_type = "TOOLS"
+	bl_region_type = "UI"
 	#bl_context = "objectmode"
 	bl_category = "BCGA"
 	
@@ -77,28 +78,28 @@ class ProMainPanel(bpy.types.Panel):
 		layout = self.layout
 		layout.row().operator_menu_enum("object.footprint_set", "size", text="Footprint")
 		layout.separator()
-		layout.row().prop(scene, "bcgaScript")
+		layout.row().prop_search(scene, "bcgaScript", bpy.data, "texts")
 		layout.row().operator("object.apply_pro_script")
 
 
 class BakingPanel(bpy.types.Panel):
 	bl_label = "Baking"
 	bl_space_type = "VIEW_3D"
-	bl_region_type = "TOOLS"
+	bl_region_type = "UI"
 	bl_category = "BCGA"
 	bl_options = {"DEFAULT_CLOSED"}
 	
 	def draw(self, context):
 		scene = context.scene
 		layout = self.layout
-		layout.row().prop(scene, "bakingBcgaScript")
+		layout.row().prop_search(scene, "bakingBcgaScript", bpy.data, "texts")
 		self.layout.operator("object.bake_pro_model")
 
 
 class FirstEdgePanel(bpy.types.Panel):
 	bl_label = "First edge"
 	bl_space_type = "VIEW_3D"
-	bl_region_type = "TOOLS"
+	bl_region_type = "UI"
 	bl_category = "BCGA"
 	bl_options = {"DEFAULT_CLOSED"}
 	
@@ -111,8 +112,8 @@ class Pro(bpy.types.Operator):
 	bl_label = "Apply"
 	bl_options = {"REGISTER", "UNDO"}
 	
-	collectionFloat = bpy.props.CollectionProperty(type=CustomFloatProperty)
-	collectionColor = bpy.props.CollectionProperty(type=CustomColorProperty)
+	collectionFloat: bpy.props.CollectionProperty(type=CustomFloatProperty)
+	collectionColor: bpy.props.CollectionProperty(type=CustomColorProperty)
 	
 	initialized = False
 	
@@ -128,7 +129,7 @@ class Pro(bpy.types.Operator):
 	def invoke(self, context, event):
 		self.initialize()
 		proContext.blenderContext = context
-		ruleFile = getRuleFile(context.scene.bcgaScript, self)
+		ruleFile = bpy.data.texts[context.scene.bcgaScript].filepath
 		if ruleFile:
 			# append the directory of the ruleFile to sys.path
 			ruleFileDirectory = os.path.dirname(os.path.realpath(os.path.expanduser(ruleFile)))
@@ -174,7 +175,7 @@ class Pro(bpy.types.Operator):
 			for param in self.params:
 				paramName = param[0]
 				row = layout.split()
-				row.label(paramName+":")
+				row.label(text=paramName + ":")
 				row.prop(param[1].collectionItem, "value")
 
 
@@ -182,25 +183,29 @@ class Bake(bpy.types.Operator):
 	bl_idname = "object.bake_pro_model"
 	bl_label = "Bake"
 	bl_options = {"REGISTER", "UNDO"}
-	
+
+	@classmethod
+	def poll(cls, context):
+		return context.scene.render.engine == "CYCLES"
+
 	def execute(self, context):
 		proContext.blenderContext = context
 		bpy.ops.object.select_all(action="DESELECT")
 		# remember the original object, it will be used for low poly model
 		lowPolyObject = context.object
-		lowPolyObject.select = True
+		lowPolyObject.select_set(True)
 		bpy.ops.object.duplicate()
 		highPolyObject = context.object
 		# high poly model
-		ruleFile = getRuleFile(context.scene.bcgaScript, self)
+		ruleFile = bpy.data.texts[context.scene.bcgaScript].filepath
 		if ruleFile:
 			highPolyParams = bpro.apply(ruleFile)[1]
 			# convert highPolyParams to a dict paramName->instanceofParamClass
 			highPolyParams = dict(highPolyParams)
 			
 			# low poly model
-			context.scene.objects.active = lowPolyObject
-			ruleFile = getRuleFile(context.scene.bakingBcgaScript, self)
+			context.view_layer.objects.active = lowPolyObject
+			ruleFile = bpy.data.texts[context.scene.bakingBcgaScript].filepath
 			if ruleFile:
 				name = lowPolyObject.name
 				module = bpro.getModule(ruleFile)
@@ -217,31 +222,28 @@ class Bake(bpy.types.Operator):
 				bpy.ops.uv.smart_project()
 				# prepare settings for baking
 				bpy.ops.object.mode_set(mode="OBJECT")
-				highPolyObject.select = True
-				bpy.context.scene.render.bake_type = "TEXTURE"
-				bpy.context.scene.render.use_bake_selected_to_active = True
+				highPolyObject.select_set(True)
+				bpy.context.scene.cycles.bake_type = "DIFFUSE"
+				bpy.context.scene.cycles.use_bake_selected_to_active = True
 				# create a new image with default settings for baking
 				image = bpy.data.images.new(name=name, width=512, height=512)
-				# assign the image to each uv_face
-				for uv_face in lowPolyObject.data.uv_textures.active.data:
-					uv_face.image = image
 				# finally perform baking
 				bpy.ops.object.bake_image()
 				# delete the high poly object and its mesh
-				context.scene.objects.active = highPolyObject
+				context.view_layer.objects.active = highPolyObject
 				mesh = highPolyObject.data
 				bpy.ops.object.delete()
 				bpy.data.meshes.remove(mesh)
-				context.scene.objects.active = lowPolyObject
+				context.view_layer.objects.active = lowPolyObject
 				# assign the baked texture to the low poly object
 				blenderTexture = bpy.data.textures.new(name, type = "IMAGE")
 				blenderTexture.image = image
 				blenderTexture.use_alpha = True
 				material = bpy.data.materials.new(name)
-				textureSlot = material.texture_slots.add()
-				textureSlot.texture = blenderTexture
-				textureSlot.texture_coords = "UV"
-				textureSlot.uv_layer = "bcga"
+				# textureSlot = material.texture_slots.add()
+				# textureSlot.texture = blenderTexture
+				# textureSlot.texture_coords = "UV"
+				# textureSlot.uv_layer = "bcga"
 				lowPolyObject.data.materials.append(material)
 		return {"FINISHED"}
 
@@ -252,7 +254,7 @@ class FootprintSet(bpy.types.Operator):
 	bl_description = "Set a building footprint for BCGA"
 	bl_options = {"REGISTER", "UNDO"}
 	
-	size = bpy.props.EnumProperty(
+	size: bpy.props.EnumProperty(
 		items = [
 			("35x15", "rectangle 35x15", "35x15"),
 			("20x10", "rectangle 20x10", "20x10"),
@@ -274,7 +276,7 @@ class FootprintSet(bpy.types.Operator):
 		rx = math.atan((h+lightOffset)/lightHeight)
 		rz = math.atan((w+lightOffset)/(h+lightOffset))
 		def lamp_add(x, y, rx, rz):
-			bpy.ops.object.lamp_add(
+			bpy.ops.object.light_add(
 				type="SUN",
 				location=((x,y,lightHeight)),
 				rotation=(rx, 0, rz)
@@ -302,8 +304,15 @@ class FirstEdgeYmin(bpy.types.Operator):
 		return {"FINISHED"}
 
 
-def register():
-	bpy.utils.register_module(__name__)
-
-def unregister():
-	bpy.utils.unregister_module(__name__)
+classes = (
+	CustomColorProperty,
+	CustomFloatProperty,
+    FirstEdgeYmin,
+    FootprintSet,
+    Bake,
+	Pro,
+	ProMainPanel,
+	BakingPanel,
+	FirstEdgePanel
+)
+register, unregister = bpy.utils.register_classes_factory(classes)
