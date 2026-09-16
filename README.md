@@ -17,9 +17,3 @@ The basic concepts of BCGA are explained in the [tutorial](https://github.com/vv
 twitter: [@prokitektura](https://twitter.com/prokitektura)
 
 Thread at blenderartists.org: http://blenderartists.org/forum/showthread.php?351081-Addon-BCGA-Computer-Generated-Architecture-for-Blender-3D-buildings-with-Python
-
-
-## Donations
-If you like BCGA, please consider making a donation:
-
-[![Please donate](https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=ZZ7CHNYKWYYZE)
